@@ -1,0 +1,47 @@
+﻿@page "/restaurants"
+@attribute [StreamRendering]
+
+<PageTitle>Restaurants</PageTitle>
+
+<h1>Restaurants</h1>
+
+<p>This component demonstrates showing data.</p>
+
+@if (r == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+   <div>
+       <ul>
+            @foreach (var rest in r)
+            {
+                <li>@rest.name --- @rest.clients</li>
+            }
+        </ul>
+   </div>
+}
+
+@code {
+    private Restaurant[]? r;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Simulate asynchronous loading to demonstrate streaming rendering
+        await Task.Delay(500);
+
+        r = new Restaurant[]
+        {
+            new Restaurant { name = "idk", clients = 100 },
+            new Restaurant { name = "idk2", clients = 200 }
+        };
+    }
+
+    private class Restaurant
+    {
+        public string name { get; set; }
+        public int clients { get; set; }
+
+    }
+}
