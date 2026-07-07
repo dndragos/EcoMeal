@@ -1,7 +1,56 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>EcoMeal - Sustainable Dining</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="hero-section text-center p-5 mt-4 rounded-3">
+    <i class="bi bi-tree text-white display-1 mb-3 d-inline-block"></i>
+    <h1 class="display-3 fw-bold text-white mb-3">Welcome to EcoMeal</h1>
+    <p class="lead text-white-50 mb-5 fs-4" style="max-width: 600px; margin: 0 auto;">
+        Connecting you with local businesses to save delicious, high-quality food from going to waste. 
+        Sustainable dining starts here.
+    </p>
+    <div class="d-flex justify-content-center gap-3">
+        <a href="packages" class="btn btn-light btn-lg px-5 py-3 fw-bold rounded-pill" style="color: var(--eco-primary);">
+            Explore Food Packages
+        </a>
+        <a href="businesses" class="btn-eco-outline text-white border-white btn-lg px-5 py-3 rounded-pill">
+            View Partners
+        </a>
+    </div>
+</div>
 
-Welcome to your new app.
+<div class="row mt-5 pt-3 text-center">
+    <div class="col-md-4 mb-4">
+        <div class="eco-card h-100 border-0 bg-transparent shadow-none">
+            <i class="bi bi-geo-alt display-4 mb-3 d-block" style="color: var(--eco-primary)"></i>
+            <h3 class="h4">Find Local Spots</h3>
+            <p class="text-muted">Discover restaurants, cafes, and supermarkets near you participating in the initiative.</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="eco-card h-100 border-0 bg-transparent shadow-none">
+            <i class="bi bi-box-seam display-4 mb-3 d-block" style="color: var(--eco-secondary)"></i>
+            <h3 class="h4">Rescue Food</h3>
+            <p class="text-muted">Purchase surplus food packages at a significant discount before the end of the day.</p>
+        </div>
+    </div>
+    <div class="col-md-4 mb-4">
+        <div class="eco-card h-100 border-0 bg-transparent shadow-none">
+            <i class="bi bi-globe-americas display-4 mb-3 d-block" style="color: var(--eco-dark)"></i>
+            <h3 class="h4">Save the Planet</h3>
+            <p class="text-muted">Every package rescued is a step towards a greener, more sustainable world.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, var(--eco-primary) 0%, var(--eco-secondary) 100%);
+        box-shadow: 0 20px 40px rgba(82, 121, 111, 0.2);
+    }
+    
+    .hero-section .btn-eco-outline:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white !important;
+    }
+</style>

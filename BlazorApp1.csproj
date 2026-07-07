@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -8,6 +8,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DataScaffold\**" />
+    <Compile Remove="ModelsScaffold\**" />
+    <Content Remove="DataScaffold\**" />
+    <Content Remove="ModelsScaffold\**" />
+    <EmbeddedResource Remove="DataScaffold\**" />
+    <EmbeddedResource Remove="ModelsScaffold\**" />
+    <None Remove="DataScaffold\**" />
+    <None Remove="ModelsScaffold\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

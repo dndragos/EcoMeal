@@ -1,0 +1,74 @@
+@page "/business/create"
+@rendermode InteractiveServer
+@using BlazorApp1.Entities
+@using BlazorApp1.Controllers
+@inject BusinessController BusinessController
+@inject NavigationManager NavigationManager
+
+<PageTitle>Add Business - EcoMeal</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="eco-card">
+            <h3 class="eco-card-header">Register New Business</h3>
+
+            <EditForm Model="@model" OnValidSubmit="Submit" FormName="createBusinessForm">
+                <div class="mb-3">
+                    <label for="name" class="form-label text-muted fw-bold">Business Name</label>
+                    <InputText id="name" class="form-control" @bind-Value="model.Name" placeholder="e.g. Green Leaf Cafe"></InputText>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label text-muted fw-bold">Description</label>
+                    <InputTextArea id="description" class="form-control" @bind-Value="model.Description" rows="3" placeholder="Tell us about the business..."></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label for="address" class="form-label text-muted fw-bold">Address</label>
+                    <InputText id="address" class="form-control" @bind-Value="model.Address" placeholder="123 Eco Street"></InputText>
+                </div>
+
+                <div class="mb-4">
+                    <label for="businessType" class="form-label text-muted fw-bold">Business Type</label>
+                    <InputSelect id="businessType" class="form-select" @bind-Value="model.BusinessTypeId">
+                        @foreach(var type in Enum.GetValues<BusinessTypeEnum>())
+                        {
+                            <option value="@type">@type</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="businesses" class="btn-eco-outline">Cancel</a>
+                    <button type="submit" class="btn-eco">Register Business</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private BusinessFormModel model = new();
+
+    private async Task Submit()
+    {
+        var business = new Business
+            {
+                Name = model.Name ?? "",
+                Description = model.Description,
+                Address = model.Address,
+                ImageUrl = model.ImageUrl,
+                BusinessTypeId = model.BusinessTypeId
+            };
+
+            await BusinessController.AddAsync(business);
+
+            NavigationManager.NavigateTo("/businesses");
+    }
+    private class BusinessFormModel
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? Address { get; set; }
+        public string? ImageUrl { get; set; }
+        public BusinessTypeEnum BusinessTypeId { get; set; }
+    }
+}

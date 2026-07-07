@@ -1,19 +1,19 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
+<div class="page d-flex flex-column min-vh-100">
+    <header class="eco-top-nav">
         <NavMenu />
-    </div>
+    </header>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-        </div>
-
-        <article class="content px-4">
+    <main class="flex-grow-1">
+        <article class="content px-4 container mt-4">
             @Body
         </article>
     </main>
+    
+    <footer class="text-center p-4 mt-auto text-muted">
+        <small>&copy; @DateTime.Now.Year EcoMeal. All rights reserved.</small>
+    </footer>
 </div>
 
 <div id="blazor-error-ui" data-nosnippet>
@@ -21,3 +21,13 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+<style>
+    .eco-top-nav {
+        background: linear-gradient(90deg, var(--eco-dark) 0%, #354F52 100%);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+    }
+</style>

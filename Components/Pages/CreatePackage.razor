@@ -1,0 +1,124 @@
+@page "/package/create"
+@rendermode InteractiveServer
+@using BlazorApp1.Entities
+@using BlazorApp1.Controllers
+@inject PackageController PackageController
+@inject BusinessController BusinessController
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Package - EcoMeal</PageTitle>
+
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="eco-card">
+            <h3 class="eco-card-header">Create New Package</h3>
+
+            <EditForm Model="@model" OnValidSubmit="Submit" FormName="createPackageForm">
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label for="name" class="form-label text-muted fw-bold">Package Name</label>
+                        <InputText id="name" class="form-control" @bind-Value="model.Name" placeholder="e.g. End of Day Pastries"></InputText>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="description" class="form-label text-muted fw-bold">Description</label>
+                    <InputTextArea id="description" class="form-control" @bind-Value="model.Description" rows="2"></InputTextArea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="price" class="form-label text-muted fw-bold">Price ($)</label>
+                        <InputNumber id="price" class="form-control" @bind-Value="model.Price"></InputNumber>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="quantity" class="form-label text-muted fw-bold">Quantity Available</label>
+                        <InputNumber id="quantity" class="form-control" @bind-Value="model.Quantity"></InputNumber>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="pickupStart" class="form-label text-muted fw-bold">Pickup Window Starts</label>
+                        <InputDate Type="InputDateType.DateTimeLocal" id="pickupStart" class="form-control" @bind-Value="model.PickupStart"></InputDate>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="pickupEnd" class="form-label text-muted fw-bold">Pickup Window Ends</label>
+                        <InputDate Type="InputDateType.DateTimeLocal" id="pickupEnd" class="form-control" @bind-Value="model.PickupEnd"></InputDate>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="packageType" class="form-label text-muted fw-bold">Package Type</label>
+                        <InputSelect id="packageType" class="form-select" @bind-Value="model.PackageTypeId">
+                            @foreach(var type in Enum.GetValues<PackageTypeEnum>())
+                            {
+                                <option value="@type">@type</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <label for="businessId" class="form-label text-muted fw-bold">Assign to Business</label>
+                        <InputSelect id="businessId" class="form-select" @bind-Value="model.BusinessId">
+                            <option value="">Select a business...</option>
+                            @if (businesses != null)
+                            {
+                                @foreach (var business in businesses)
+                                {
+                                    <option value="@business.Id">@business.Name</option>
+                                }
+                            }
+                        </InputSelect>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                    <a href="packages" class="btn-eco-outline">Cancel</a>
+                    <button type="submit" class="btn-eco">Create Package</button>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private PackageFormModel model = new();
+    private List<Business>? businesses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        businesses = (await BusinessController.GetAll()).Value;
+    }
+
+    private async Task Submit()
+    {
+        var package = new Package
+            {
+                Name = model.Name ?? "",
+                Description = model.Description,
+                Price = model.Price,
+                Quantity = model.Quantity,
+                PickupStart = model.PickupStart,
+                PickupEnd = model.PickupEnd,
+                PackageTypeId = model.PackageTypeId,
+                BusinessId = model.BusinessId
+            };
+
+            await PackageController.AddAsync(package);
+
+            NavigationManager.NavigateTo("/packages");
+    }
+
+    private class PackageFormModel
+    {
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public decimal Price { get; set; }
+        public int Quantity { get; set; }
+        public DateTime PickupStart { get; set; } = DateTime.Now;
+        public DateTime PickupEnd { get; set; } = DateTime.Now.AddHours(2);
+        public PackageTypeEnum PackageTypeId { get; set; }
+        public Guid BusinessId { get; set; }
+    }
+}
