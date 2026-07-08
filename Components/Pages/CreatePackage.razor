@@ -1,4 +1,5 @@
 @page "/package/create"
+@page "/package/update/{Id:guid}"
 @rendermode InteractiveServer
 @using BlazorApp1.Entities
 @using BlazorApp1.Controllers
@@ -6,12 +7,12 @@
 @inject BusinessController BusinessController
 @inject NavigationManager NavigationManager
 
-<PageTitle>Create Package - EcoMeal</PageTitle>
+<PageTitle>@(IsEditMode ? "Update Package" : "Create Package") - EcoMeal</PageTitle>
 
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
         <div class="eco-card">
-            <h3 class="eco-card-header">Create New Package</h3>
+            <h3 class="eco-card-header">@(IsEditMode ? "Update Package" : "Create New Package")</h3>
 
             <EditForm Model="@model" OnValidSubmit="Submit" FormName="createPackageForm">
                 <div class="row">
@@ -24,6 +25,11 @@
                 <div class="mb-3">
                     <label for="description" class="form-label text-muted fw-bold">Description</label>
                     <InputTextArea id="description" class="form-control" @bind-Value="model.Description" rows="2"></InputTextArea>
+                </div>
+
+                <div class="mb-3">
+                    <label for="imageUrl" class="form-label text-muted fw-bold">Image URL (Optional)</label>
+                    <InputText id="imageUrl" class="form-control" @bind-Value="model.ImageUrl" placeholder="https://example.com/image.jpg"></InputText>
                 </div>
                 
                 <div class="row">
@@ -75,7 +81,7 @@
 
                 <div class="d-flex justify-content-end gap-2 mt-2">
                     <a href="packages" class="btn-eco-outline">Cancel</a>
-                    <button type="submit" class="btn-eco">Create Package</button>
+                    <button type="submit" class="btn-eco">@(IsEditMode ? "Update Package" : "Create Package")</button>
                 </div>
             </EditForm>
         </div>
@@ -83,37 +89,68 @@
 </div>
 
 @code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private bool IsEditMode => Id.HasValue;
     private PackageFormModel model = new();
     private List<Business>? businesses;
 
     protected override async Task OnInitializedAsync()
     {
         businesses = (await BusinessController.GetAll()).Value;
+
+        if (IsEditMode)
+        {
+            var result = await PackageController.GetById(Id.Value);
+            var package = result.Value;
+            if (package != null)
+            {
+                model.Name = package.Name;
+                model.Description = package.Description;
+                model.ImageUrl = package.ImageUrl;
+                model.Price = package.Price;
+                model.Quantity = package.Quantity;
+                model.PickupStart = package.PickupStart;
+                model.PickupEnd = package.PickupEnd;
+                model.PackageTypeId = package.PackageTypeId;
+                model.BusinessId = package.BusinessId;
+            }
+        }
     }
 
     private async Task Submit()
     {
         var package = new Package
-            {
-                Name = model.Name ?? "",
-                Description = model.Description,
-                Price = model.Price,
-                Quantity = model.Quantity,
-                PickupStart = model.PickupStart,
-                PickupEnd = model.PickupEnd,
-                PackageTypeId = model.PackageTypeId,
-                BusinessId = model.BusinessId
-            };
+        {
+            Name = model.Name ?? "",
+            Description = model.Description,
+            ImageUrl = model.ImageUrl,
+            Price = model.Price,
+            Quantity = model.Quantity,
+            PickupStart = model.PickupStart,
+            PickupEnd = model.PickupEnd,
+            PackageTypeId = model.PackageTypeId,
+            BusinessId = model.BusinessId
+        };
 
+        if (IsEditMode)
+        {
+            await PackageController.UpdateAsync(Id.Value, package);
+        }
+        else
+        {
             await PackageController.AddAsync(package);
+        }
 
-            NavigationManager.NavigateTo("/packages");
+        NavigationManager.NavigateTo("/packages");
     }
 
     private class PackageFormModel
     {
         public string? Name { get; set; }
         public string? Description { get; set; }
+        public string? ImageUrl { get; set; }
         public decimal Price { get; set; }
         public int Quantity { get; set; }
         public DateTime PickupStart { get; set; } = DateTime.Now;

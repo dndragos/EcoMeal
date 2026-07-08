@@ -1,16 +1,17 @@
 @page "/business/create"
+@page "/business/update/{Id:guid}"
 @rendermode InteractiveServer
 @using BlazorApp1.Entities
 @using BlazorApp1.Controllers
 @inject BusinessController BusinessController
 @inject NavigationManager NavigationManager
 
-<PageTitle>Add Business - EcoMeal</PageTitle>
+<PageTitle>@(IsEditMode ? "Update Business" : "Add Business") - EcoMeal</PageTitle>
 
 <div class="row justify-content-center">
     <div class="col-md-8 col-lg-6">
         <div class="eco-card">
-            <h3 class="eco-card-header">Register New Business</h3>
+            <h3 class="eco-card-header">@(IsEditMode ? "Update Business" : "Register New Business")</h3>
 
             <EditForm Model="@model" OnValidSubmit="Submit" FormName="createBusinessForm">
                 <div class="mb-3">
@@ -26,6 +27,11 @@
                     <InputText id="address" class="form-control" @bind-Value="model.Address" placeholder="123 Eco Street"></InputText>
                 </div>
 
+                <div class="mb-3">
+                    <label for="imageUrl" class="form-label text-muted fw-bold">Image URL (Optional)</label>
+                    <InputText id="imageUrl" class="form-control" @bind-Value="model.ImageUrl" placeholder="https://example.com/image.jpg"></InputText>
+                </div>
+
                 <div class="mb-4">
                     <label for="businessType" class="form-label text-muted fw-bold">Business Type</label>
                     <InputSelect id="businessType" class="form-select" @bind-Value="model.BusinessTypeId">
@@ -38,7 +44,7 @@
 
                 <div class="d-flex justify-content-end gap-2">
                     <a href="businesses" class="btn-eco-outline">Cancel</a>
-                    <button type="submit" class="btn-eco">Register Business</button>
+                    <button type="submit" class="btn-eco">@(IsEditMode ? "Update Business" : "Register Business")</button>
                 </div>
             </EditForm>
         </div>
@@ -46,22 +52,50 @@
 </div>
 
 @code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private bool IsEditMode => Id.HasValue;
     private BusinessFormModel model = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (IsEditMode)
+        {
+            var result = await BusinessController.GetById(Id.Value);
+            var business = result.Value;
+            if (business != null)
+            {
+                model.Name = business.Name;
+                model.Description = business.Description;
+                model.Address = business.Address;
+                model.ImageUrl = business.ImageUrl;
+                model.BusinessTypeId = business.BusinessTypeId;
+            }
+        }
+    }
 
     private async Task Submit()
     {
         var business = new Business
-            {
-                Name = model.Name ?? "",
-                Description = model.Description,
-                Address = model.Address,
-                ImageUrl = model.ImageUrl,
-                BusinessTypeId = model.BusinessTypeId
-            };
+        {
+            Name = model.Name ?? "",
+            Description = model.Description,
+            Address = model.Address,
+            ImageUrl = model.ImageUrl,
+            BusinessTypeId = model.BusinessTypeId
+        };
 
+        if (IsEditMode)
+        {
+            await BusinessController.UpdateAsync(Id.Value, business);
+        }
+        else
+        {
             await BusinessController.AddAsync(business);
+        }
 
-            NavigationManager.NavigateTo("/businesses");
+        NavigationManager.NavigateTo("/businesses");
     }
     private class BusinessFormModel
     {

@@ -19,5 +19,31 @@ namespace BlazorApp1.Services
             await businessRepository.AddAsync(business);
             await businessRepository.SaveChangesAsync();
         }
+
+        public async Task<Business?> GetByIdAsync(Guid id)
+        {
+            return await businessRepository.GetById(id);
+        }
+
+        public async Task UpdateAsync(Guid id, Business updatedBusiness)
+        {
+            var business = await businessRepository.GetById(id);
+            if (business != null)
+            {
+                business.Name = updatedBusiness.Name;
+                business.Description = updatedBusiness.Description;
+                business.Address = updatedBusiness.Address;
+                business.ImageUrl = updatedBusiness.ImageUrl;
+                business.BusinessTypeId = updatedBusiness.BusinessTypeId;
+                
+                await businessRepository.SaveChangesAsync();
+            }
+        }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            await businessRepository.DeleteAsync(id);
+            await businessRepository.SaveChangesAsync();
+        }
     }
 }

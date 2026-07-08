@@ -25,10 +25,21 @@ namespace BlazorApp1.Repositories
      
         public async Task DeleteAsync(Guid id)
         {
-            var business = await context.Businesses.FindAsync(id);
+            var business = await context.Businesses
+                .Include(b => b.Packages).ThenInclude(p => p.OrderPackages)
+                .Include(b => b.Orders).ThenInclude(o => o.OrderPackages)
+                .FirstOrDefaultAsync(b => b.Id == id);
 
             if (business is null)
                 return;
+
+            var orderPackagesFromPackages = business.Packages.SelectMany(p => p.OrderPackages).ToList();
+            var orderPackagesFromOrders = business.Orders.SelectMany(o => o.OrderPackages).ToList();
+            var allOrderPackages = orderPackagesFromPackages.Concat(orderPackagesFromOrders).Distinct().ToList();
+
+            context.OrderPackages.RemoveRange(allOrderPackages);
+            context.Packages.RemoveRange(business.Packages);
+            context.Orders.RemoveRange(business.Orders);
             context.Businesses.Remove(business);
         }
 

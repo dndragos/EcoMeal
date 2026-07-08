@@ -1,4 +1,4 @@
-﻿using BlazorApp1.Entities;
+using BlazorApp1.Entities;
 using BlazorApp1.Repositories;
 
 namespace BlazorApp1.Services.Interfaces
@@ -7,5 +7,8 @@ namespace BlazorApp1.Services.Interfaces
     {
         public Task<List<Business>> GetAll();
         public Task AddAsync(Business business);
+        public Task<Business?> GetByIdAsync(Guid id);
+        public Task UpdateAsync(Guid id, Business updatedBusiness);
+        public Task DeleteAsync(Guid id);
     }
 }

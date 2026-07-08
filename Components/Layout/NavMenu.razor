@@ -4,10 +4,10 @@
             <i class="bi bi-leaf-fill" style="color: var(--eco-light);"></i>
             EcoMeal
         </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+        <div class="@NavMenuCssClass navbar-collapse justify-content-end" id="navbarNav" @onclick="ToggleNavMenu">
             <ul class="navbar-nav gap-2">
                 <li class="nav-item">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
@@ -38,6 +38,17 @@
         </div>
     </div>
 </nav>
+
+@code {
+    private bool collapseNavMenu = true;
+
+    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : "collapse show";
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+}
 
 <style>
     /* Scoped NavMenu CSS */

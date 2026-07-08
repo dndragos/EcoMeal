@@ -24,10 +24,14 @@ namespace BlazorApp1.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var package = await context.Packages.FindAsync(id);
+            var package = await context.Packages
+                .Include(p => p.OrderPackages)
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (package is null)
                 return;
+
+            context.OrderPackages.RemoveRange(package.OrderPackages);
             context.Packages.Remove(package);
         }
 
