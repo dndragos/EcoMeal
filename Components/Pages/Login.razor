@@ -1,0 +1,46 @@
+@page "/account/login"
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+
+<PageTitle>Login - EcoMeal</PageTitle>
+
+<div class="login-page-wrapper">
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <h2>Welcome Back</h2>
+                <p>Log in to access your EcoMeal account</p>
+            </div>
+
+            <form method="post" action="/login?returnUrl=@Uri.EscapeDataString(ReturnUrl ?? "/")" class="login-form">
+                <AntiforgeryToken />
+                <div class="form-group">
+                    <label for="email">Email address</label>
+                    <div class="input-container">
+                        <input type="email" id="email" name="Email" class="form-input" placeholder="name@example.com" required autocomplete="username" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-container">
+                        <input type="password" id="password" name="Password" class="form-input" placeholder="••••••••" required autocomplete="current-password" />
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    <span>Sign in</span>
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p>Don't have an account? <a href="/account/register">Sign up now</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; } = "/";
+}

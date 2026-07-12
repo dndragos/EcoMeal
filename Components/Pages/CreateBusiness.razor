@@ -3,13 +3,18 @@
 @rendermode InteractiveServer
 @using BlazorApp1.Entities
 @using BlazorApp1.Controllers
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize(Roles = "Admin, BusinessManager")]
 @inject BusinessController BusinessController
 @inject NavigationManager NavigationManager
+@inject AuthenticationStateProvider AuthStateProvider
 
 <PageTitle>@(IsEditMode ? "Update Business" : "Add Business") - EcoMeal</PageTitle>
 
-<div class="row justify-content-center">
-    <div class="col-md-8 col-lg-6">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
         <div class="eco-card">
             <h3 class="eco-card-header">@(IsEditMode ? "Update Business" : "Register New Business")</h3>
 
@@ -92,6 +97,12 @@
         }
         else
         {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var userIdStr = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (Guid.TryParse(userIdStr, out var userId))
+            {
+                business.OwnerId = userId;
+            }
             await BusinessController.AddAsync(business);
         }
 

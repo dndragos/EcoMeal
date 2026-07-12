@@ -9,7 +9,7 @@ namespace BlazorApp1.Repositories
     {
         public async Task<List<Package>> GetAllAsync()
         {
-            return await context.Packages.ToListAsync();
+            return await context.Packages.Include(p => p.Business).ToListAsync();
         }
 
         public async Task<Package?> GetById(Guid Id)

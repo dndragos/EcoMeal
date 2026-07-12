@@ -1,0 +1,119 @@
+@page "/admin"
+@using BlazorApp1.Entities
+@using BlazorApp1.Constants
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@attribute [Authorize(Roles = AppRoles.Admin)]
+@inject UserManager<ApplicationUser> UserManager
+@rendermode InteractiveServer
+
+<PageTitle>Admin Dashboard - EcoMeal</PageTitle>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Admin Dashboard</h1>
+</div>
+
+@if (users == null)
+{
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div class="eco-card">
+        <h3 class="eco-card-header">User Management</h3>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Full Name</th>
+                        <th>Roles</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var user in users)
+                    {
+                        var roles = userRoles.ContainsKey(user.Id) ? string.Join(", ", userRoles[user.Id]) : "None";
+                        <tr>
+                            <td>@user.Email</td>
+                            <td>@user.FullName</td>
+                            <td>
+                                @foreach (var role in userRoles.GetValueOrDefault(user.Id, new List<string>()))
+                                {
+                                    <span class="badge @GetRoleBadgeClass(role) me-1">@role</span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                <div class="d-flex gap-1 justify-content-end mb-2">
+                                    @foreach(var role in AppRoles.All)
+                                    {
+                                        bool hasRole = userRoles.GetValueOrDefault(user.Id, new List<string>()).Contains(role);
+                                        <button class="btn btn-sm @(hasRole ? "btn-success" : "btn-outline-secondary")" @onclick="() => ToggleRole(user, role, !hasRole)">
+                                            @if(hasRole) { <i class="bi bi-check"></i> } @role
+                                        </button>
+                                    }
+                                </div>
+                                <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteUser(user)">
+                                    <i class="bi bi-trash"></i> Delete
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}
+
+@code {
+    private List<ApplicationUser>? users;
+    private Dictionary<Guid, IList<string>> userRoles = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        users = UserManager.Users.ToList();
+        userRoles.Clear();
+        foreach (var user in users)
+        {
+            var roles = await UserManager.GetRolesAsync(user);
+            userRoles[user.Id] = roles;
+        }
+    }
+
+    private async Task ToggleRole(ApplicationUser user, string role, bool addToRole)
+    {
+        if (addToRole)
+        {
+            await UserManager.AddToRoleAsync(user, role);
+        }
+        else
+        {
+            await UserManager.RemoveFromRoleAsync(user, role);
+        }
+        await LoadUsersAsync();
+    }
+
+    private async Task DeleteUser(ApplicationUser user)
+    {
+        await UserManager.DeleteAsync(user);
+        await LoadUsersAsync();
+    }
+
+    private string GetRoleBadgeClass(string role) => role switch
+    {
+        AppRoles.Admin => "bg-danger",
+        AppRoles.BusinessManager => "bg-primary",
+        AppRoles.Customer => "bg-success",
+        _ => "bg-secondary"
+    };
+}

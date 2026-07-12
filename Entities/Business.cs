@@ -13,6 +13,10 @@ namespace BlazorApp1.Entities
 
         public BusinessTypeEnum BusinessTypeId { get; set; }
         public BusinessType BusinessType { get; set; }
+        
+        public Guid? OwnerId { get; set; }
+        public ApplicationUser? Owner { get; set; }
+
         public ICollection<Package> Packages { get; set; } = new List<Package>();
         public ICollection<Order> Orders { get; set; } = new List<Order>();
     }

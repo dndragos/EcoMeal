@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorApp1.Migrations
 {
     [DbContext(typeof(EcoMealDbContext))]
-    [Migration("20260707221832_Initial")]
-    partial class Initial
+    [Migration("20260712213026_AddBusinessOwnership")]
+    partial class AddBusinessOwnership
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,9 +117,14 @@ namespace BlazorApp1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessTypeId");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Businesses");
                 });
@@ -463,7 +468,13 @@ namespace BlazorApp1.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("BlazorApp1.Entities.ApplicationUser", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId");
+
                     b.Navigation("BusinessType");
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("BlazorApp1.Entities.Order", b =>

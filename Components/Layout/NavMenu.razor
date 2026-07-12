@@ -1,3 +1,5 @@
+@rendermode InteractiveServer
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-transparent py-3 px-4">
     <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center gap-2" href="">
@@ -19,21 +21,37 @@
                         <i class="bi bi-building"></i> Businesses
                     </NavLink>
                 </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="business/create">
-                        <i class="bi bi-plus-circle"></i> Add Business
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="packages">
-                        <i class="bi bi-box-seam"></i> Packages
-                    </NavLink>
-                </li>
-                <li class="nav-item">
-                    <NavLink class="nav-link" href="package/create">
-                        <i class="bi bi-plus-circle"></i> Add Package
-                    </NavLink>
-                </li>
+                <AuthorizeView>
+                    <Authorized>
+                        <AuthorizeView Roles="Admin" Context="adminContext">
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="admin">
+                                    <i class="bi bi-shield-lock"></i> Admin Panel
+                                </NavLink>
+                            </li>
+                        </AuthorizeView>
+                        <li class="nav-item ms-lg-3">
+                            <form action="logout" method="post">
+                                <AntiforgeryToken />
+                                <button type="submit" class="nav-link btn-login" style="background: none; border-color: rgba(255, 255, 255, 0.4);">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    </Authorized>
+                    <NotAuthorized>
+                        <li class="nav-item ms-lg-3">
+                            <NavLink class="nav-link btn-login" href="account/login">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </NavLink>
+                        </li>
+                        <li class="nav-item">
+                            <NavLink class="nav-link btn-register" href="account/register">
+                                <i class="bi bi-person-plus"></i> Register
+                            </NavLink>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
             </ul>
         </div>
     </div>
@@ -84,5 +102,24 @@
     
     .nav-item .nav-link i {
         font-size: 1.1rem;
+    }
+
+    .nav-item .btn-login {
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    
+    .nav-item .btn-login:hover {
+        border-color: rgba(255, 255, 255, 0.8);
+    }
+
+    .nav-item .btn-register {
+        background-color: var(--eco-primary, #4caf50);
+        color: white !important;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .nav-item .btn-register:hover {
+        background-color: var(--eco-primary-dark, #388e3c);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.25);
     }
 </style>
