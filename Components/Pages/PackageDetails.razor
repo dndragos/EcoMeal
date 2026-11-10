@@ -1,0 +1,333 @@
+@page "/package/{PackageId:guid}"
+@rendermode InteractiveServer
+@using BlazorApp1.Entities
+@using BlazorApp1.Services.Interfaces
+@inject IPackageService PackageService
+@inject IReviewService ReviewService
+@inject IOrderService OrderService
+@inject IToastService ToastService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Package Details - EcoMeal</PageTitle>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center mt-5">
+        <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (package == null)
+{
+    <div class="alert alert-danger mt-4">Package not found.</div>
+}
+else
+{
+    <div class="container mt-4">
+        <div class="row">
+            <!-- Package Info -->
+            <div class="col-md-5 mb-4">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <img src="@(string.IsNullOrEmpty(package.ImageUrl) ? "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80" : package.ImageUrl)" 
+                         class="card-img-top" style="height: 300px; object-fit: cover;" alt="@package.Name">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h2 class="fw-bold mb-0">@package.Name</h2>
+                            <span class="badge bg-success fs-5 px-3 py-2 rounded-pill">£@package.Price.ToString("F2")</span>
+                        </div>
+                        <p class="text-muted"><i class="bi bi-building me-1"></i> @package.Business.Name</p>
+                        
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="text-warning me-2">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <i class="bi @(i <= Math.Round(averageRating) ? "bi-star-fill" : "bi-star")"></i>
+                                }
+                            </div>
+                            <span class="text-muted">(@reviews.Count reviews)</span>
+                        </div>
+
+                        <h5 class="fw-bold mt-4">About this package</h5>
+                        <p class="text-secondary">@package.Description</p>
+
+                        <div class="bg-light rounded-3 p-3 mt-4">
+                            <div class="d-flex align-items-center mb-2">
+                                <i class="bi bi-clock-history fs-4 text-success me-3"></i>
+                                <div>
+                                    <small class="text-muted d-block fw-bold text-uppercase">Pickup Time</small>
+                                    <span class="fw-medium">@package.PickupStart.ToString("HH:mm") - @package.PickupEnd.ToString("HH:mm")</span>
+                                </div>
+                            </div>
+                            <hr class="my-2 border-secondary opacity-10">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-box-seam fs-4 text-primary me-3"></i>
+                                <div>
+                                    <small class="text-muted d-block fw-bold text-uppercase">Available</small>
+                                    <span class="fw-medium">@package.Quantity left</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        
+                        <div class="mt-4">
+                            @if (package.Quantity > 0)
+                            {
+                                <div class="d-flex gap-2 align-items-center mb-3">
+                                    <input type="number" class="form-control text-center rounded-pill bg-light border-0 shadow-sm" style="width: 80px; height: 48px; font-size: 1.1rem;" min="1" max="@package.Quantity" @bind="selectedQuantity" />
+                                    <button class="btn btn-eco flex-grow-1 rounded-pill fw-bold shadow-sm" style="height: 48px; display:flex; align-items:center; justify-content:center; font-size: 1.1rem;" @onclick="AddToOrderAsync">
+                                        <i class="bi bi-cart-plus me-2 fs-4"></i> Add to Order
+                                    </button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="w-100 rounded-pill bg-light text-muted fw-bold d-flex align-items-center justify-content-center mb-3 shadow-sm" style="height: 48px; border: 1px dashed #ccc; font-size: 1.1rem;">
+                                    <i class="bi bi-x-circle me-2"></i> Sold Out
+                                </div>
+                            }
+                            <button class="btn btn-outline-secondary w-100 rounded-pill py-2 fw-bold shadow-sm mt-2" @onclick="GoBack">
+                                <i class="bi bi-arrow-left me-2"></i> Back to Packages
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="col-md-7">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-body p-4 p-lg-5">
+                        <h3 class="fw-bold mb-4">Customer Reviews</h3>
+                        
+                        @if (!reviews.Any())
+                        {
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-chat-square-text fs-1 d-block mb-3 opacity-50"></i>
+                                <h5>No reviews yet</h5>
+                                <p>Be the first to review this package!</p>
+                            </div>
+                        }
+                        
+                        <!-- Add Review Form -->
+                        @if (isAuthenticated && !isBusinessManager)
+                        {
+                            <div class="bg-light p-4 rounded-4 mb-5 border">
+                                <h5 class="fw-bold mb-3">Write a Review</h5>
+                                @if (reviewSuccess)
+                                {
+                                    <div class="alert alert-success py-2">Thanks for your review!</div>
+                                }
+                                else
+                                {
+                                    @if (reviewError != null)
+                                    {
+                                        <div class="alert alert-danger py-2">@reviewError</div>
+                                    }
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Rating</label>
+                                        <div class="text-warning fs-4" style="cursor: pointer;">
+                                            @for (int i = 1; i <= 5; i++)
+                                            {
+                                                var starValue = i;
+                                                <i class="bi @(starValue <= newReviewRating ? "bi-star-fill" : "bi-star")" @onclick="() => SetRating(starValue)"></i>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted small fw-bold text-uppercase">Comment</label>
+                                        <textarea class="form-control rounded-3" rows="3" @bind="newReviewComment" placeholder="Tell us what you liked..."></textarea>
+                                    </div>
+                                    <button class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" @onclick="SubmitReview" disabled="@isSubmittingReview">
+                                        @if (isSubmittingReview)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                        }
+                                        Submit Review
+                                    </button>
+                                }
+                            </div>
+                        }
+
+                        <div class="reviews-list">
+                                @foreach (var review in reviews)
+                                {
+                                    <div class="review-item mb-4 pb-4 border-bottom">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="d-flex align-items-center">
+                                                <div class="bg-light rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                                    <i class="bi bi-person text-secondary fs-5"></i>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0 fw-bold">@review.User.Email?.Split('@')[0]</h6>
+                                                    <small class="text-muted">@review.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                                </div>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="text-warning">
+                                                    @for (int i = 1; i <= 5; i++)
+                                                    {
+                                                        <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star")"></i>
+                                                    }
+                                                </div>
+                                                @if (isAdmin || review.UserId == currentUserId)
+                                                {
+                                                    <button class="btn btn-sm btn-outline-danger border-0" @onclick="() => DeleteReviewAsync(review.Id)" title="Delete Review">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(review.Comment))
+                                        {
+                                            <p class="mb-0 text-secondary mt-3">"@review.Comment"</p>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject AuthenticationStateProvider AuthStateProvider
+
+@code {
+    [Parameter]
+    public Guid PackageId { get; set; }
+
+    private Package? package;
+    private List<Review> reviews = new();
+    private double averageRating = 0;
+    private bool isLoading = true;
+    
+    private bool isAuthenticated = false;
+    private Guid currentUserId;
+
+    private int newReviewRating = 5;
+    private string newReviewComment = "";
+    private bool isSubmittingReview = false;
+    private string? reviewError = null;
+    private bool reviewSuccess = false;
+
+    private int selectedQuantity = 1;
+
+    private bool isAdmin = false;
+    private bool isBusinessManager = false;
+    private bool isProcessing = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (Guid.TryParse(userIdStr, out var id))
+        {
+            isAuthenticated = true;
+            currentUserId = id;
+            isAdmin = user.IsInRole("Admin");
+            isBusinessManager = user.IsInRole("BusinessManager");
+        }
+
+        await LoadPackageData();
+    }
+
+    private async Task LoadPackageData()
+    {
+        isLoading = true;
+        package = await PackageService.GetByIdAsync(PackageId);
+        
+        if (package != null)
+        {
+            var revs = await ReviewService.GetReviewsForPackageAsync(PackageId);
+            reviews = revs.ToList();
+            averageRating = await ReviewService.GetAverageRatingAsync(PackageId);
+        }
+        
+        isLoading = false;
+    }
+
+    private void SetRating(int rating)
+    {
+        newReviewRating = rating;
+    }
+
+    private async Task SubmitReview()
+    {
+        if (newReviewRating < 1 || newReviewRating > 5) return;
+        
+        isSubmittingReview = true;
+        reviewError = null;
+        
+        var result = await ReviewService.AddReviewAsync(currentUserId, PackageId, newReviewRating, newReviewComment);
+        if (result != null)
+        {
+            reviewError = result;
+        }
+        else
+        {
+            reviewSuccess = true;
+            newReviewComment = "";
+            newReviewRating = 5;
+            await LoadPackageData(); // reload reviews
+        }
+        
+        isSubmittingReview = false;
+    }
+
+    private async Task AddToOrderAsync()
+    {
+        if (isProcessing) return;
+        isProcessing = true;
+        try
+        {
+            if (!isAuthenticated)
+            {
+                var returnUrl = Uri.EscapeDataString("/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
+                NavigationManager.NavigateTo($"/account/login?Error=Login%20first...&ReturnUrl={returnUrl}");
+                return;
+            }
+
+            var result = await OrderService.AddPackageToPendingOrderAsync(currentUserId, PackageId, selectedQuantity);
+
+            if (result != null)
+            {
+                ToastService.ShowError(result);
+            }
+            else
+            {
+                ToastService.ShowSuccess($"Added {selectedQuantity}x {package?.Name} to your cart!");
+                await LoadPackageData(); // Reload to update available quantity
+                selectedQuantity = 1; // Reset quantity
+            }
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task DeleteReviewAsync(Guid reviewId)
+    {
+        await ReviewService.DeleteReviewAsync(reviewId);
+        ToastService.ShowSuccess("Review deleted successfully.");
+        await LoadPackageData();
+    }
+
+    private void GoBack()
+    {
+        if (package?.BusinessId != null)
+        {
+            NavigationManager.NavigateTo($"/business/{package.BusinessId}/packages");
+        }
+        else
+        {
+            NavigationManager.NavigateTo("/businesses");
+        }
+    }
+}

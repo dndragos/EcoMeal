@@ -204,11 +204,17 @@ namespace BlazorApp1.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    BusinessTypeId = table.Column<int>(type: "int", nullable: false)
+                    BusinessTypeId = table.Column<int>(type: "int", nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uniqueidentifier", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Businesses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Businesses_AspNetUsers_OwnerId",
+                        column: x => x.OwnerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Businesses_BusinessTypes_BusinessTypeId",
                         column: x => x.BusinessTypeId,
@@ -225,7 +231,8 @@ namespace BlazorApp1.Migrations
                     UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BusinessId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     StatusId = table.Column<int>(type: "int", nullable: false),
-                    OrderNumber = table.Column<int>(type: "int", nullable: false)
+                    OrderNumber = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -385,6 +392,11 @@ namespace BlazorApp1.Migrations
                 column: "BusinessTypeId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Businesses_OwnerId",
+                table: "Businesses",
+                column: "OwnerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderPackages_OrderId",
                 table: "OrderPackages",
                 column: "OrderId");
@@ -451,9 +463,6 @@ namespace BlazorApp1.Migrations
                 name: "Packages");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
                 name: "Statuses");
 
             migrationBuilder.DropTable(
@@ -461,6 +470,9 @@ namespace BlazorApp1.Migrations
 
             migrationBuilder.DropTable(
                 name: "PackageTypes");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
 
             migrationBuilder.DropTable(
                 name: "BusinessTypes");

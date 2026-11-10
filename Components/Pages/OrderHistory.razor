@@ -1,0 +1,154 @@
+@page "/order/history"
+@using BlazorApp1.Entities
+@using BlazorApp1.Services.Interfaces
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@inject IOrderService OrderService
+@inject AuthenticationStateProvider AuthStateProvider
+@rendermode InteractiveServer
+
+<PageTitle>Order History</PageTitle>
+
+<div class="container py-5">
+    <!-- Premium Hero -->
+    <div class="hero-container position-relative overflow-hidden rounded-4 mb-5 shadow-lg mt-3" style="min-height: 240px; padding: 0; background-color: #f8fdfa; border: 1px solid rgba(132, 169, 140, 0.2); display: flex; align-items: center;">
+        <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 80% 20%, rgba(132, 169, 140, 0.15) 0%, transparent 50%); pointer-events: none;"></div>
+        <div class="container position-relative z-1 py-4 h-100 d-flex flex-column justify-content-center">
+            <div class="row align-items-center">
+                <div class="col-lg-7 text-center text-lg-start mb-4 mb-lg-0">
+                    <div class="badge bg-white text-success rounded-pill px-3 py-2 mb-3 shadow-sm fw-bold border" style="animation: fadeDown 0.8s ease-out; color: var(--eco-primary) !important;">
+                        <i class="bi bi-clock-history text-warning me-1"></i> Order History
+                    </div>
+                    <h1 class="display-4 fw-bolder mb-3 text-dark" style="letter-spacing: -1px; animation: slideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+                        Your Past.<br/>
+                        <span style="background: linear-gradient(135deg, var(--eco-primary) 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Delicious Impact.</span>
+                    </h1>
+                </div>
+                <div class="col-lg-5" style="animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;">
+                    <div class="p-4 bg-white bg-opacity-75 rounded-4 shadow-sm border border-white text-center" style="backdrop-filter: blur(12px);">
+                        <a href="order" class="btn btn-eco w-100 fw-bold rounded-pill py-3 d-flex justify-content-center align-items-center shadow-sm">
+                            <i class="bi bi-arrow-left me-2"></i> Back to Current Order
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="d-flex justify-content-center my-5">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (!isAuthenticated)
+    {
+        <div class="eco-card text-center p-5 shadow-sm">
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-4" style="width: 120px; height: 120px;">
+                <i class="bi bi-person-lock display-1"></i>
+            </div>
+            <h3 class="fw-bold mb-3" style="color: var(--eco-dark);">Login Required</h3>
+            <p class="text-muted mb-4 fs-5">You must be logged in to view your order history.</p>
+            <a href="/account/login?ReturnUrl=@Uri.EscapeDataString("/order/history")" class="btn-eco rounded-pill px-5 py-3 fs-5 fw-bold shadow-sm"><i class="bi bi-box-arrow-in-right me-2"></i>Log in</a>
+        </div>
+    }
+    else if (finishedOrders == null || !finishedOrders.Any())
+    {
+        <div class="eco-card text-center p-5 shadow-sm">
+            <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted mb-4" style="width: 120px; height: 120px;">
+                <i class="bi bi-receipt display-1"></i>
+            </div>
+            <h3 class="fw-bold mb-3" style="color: var(--eco-dark);">No Order History</h3>
+            <p class="text-muted mb-4 fs-5">Your completed and canceled orders will appear here (and are cleared after 30 minutes).</p>
+            <a href="/businesses" class="btn-eco rounded-pill px-5 py-3 fs-5 fw-bold shadow-sm"><i class="bi bi-shop me-2"></i>Browse Businesses</a>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var order in finishedOrders)
+            {
+                <div class="col-md-6 col-lg-4" style="animation: fadeInUp 0.4s ease-out forwards;">
+                    <div class="eco-card h-100 p-0 overflow-hidden d-flex flex-column shadow-sm position-relative border-0" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+                        <div style="height: 6px; width: 100%; background: linear-gradient(90deg, var(--eco-primary), var(--eco-secondary));"></div>
+                        
+                        <div class="p-4 flex-grow-1 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div>
+                                    <h5 class="fw-bold mb-1" style="color: var(--eco-dark);">@order.Business?.Name</h5>
+                                    <p class="text-muted small mb-0"><i class="bi bi-calendar-event me-1"></i> @order.CreatedAt.ToLocalTime().ToString("MMM dd, HH:mm")</p>
+                                </div>
+                                @if (order.StatusId == StatusEnum.Canceled)
+                                {
+                                    <span class="badge rounded-pill fw-bold px-3 py-2" style="background-color: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2);"><i class="bi bi-x-circle me-1"></i> Canceled</span>
+                                }
+                                else if (order.StatusId == StatusEnum.Delivered)
+                                {
+                                    <span class="badge rounded-pill fw-bold px-3 py-2" style="background-color: rgba(25, 135, 84, 0.1); color: #198754; border: 1px solid rgba(25, 135, 84, 0.2);"><i class="bi bi-check-circle me-1"></i> Delivered</span>
+                                }
+                            </div>
+                            
+                            <hr class="my-2 opacity-25">
+                            
+                            <ul class="list-unstyled flex-grow-1 my-3">
+                                @foreach (var op in order.OrderPackages)
+                                {
+                                    <li class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-light text-dark border">@op.Quantity&times;</span>
+                                            <span class="text-truncate" style="max-width: 150px;" title="@op.Package?.Name">@op.Package?.Name</span>
+                                        </div>
+                                        <span class="fw-bold text-muted">@((op.Package?.Price * op.Quantity)?.ToString("C"))</span>
+                                    </li>
+                                }
+                            </ul>
+                            
+                            <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                                <span class="text-muted">Total Paid</span>
+                                <span class="fs-4 fw-bold" style="color: var(--eco-primary);">@order.OrderPackages.Sum(op => op.Package?.Price * op.Quantity)?.ToString("C")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Order>? finishedOrders;
+    private bool isLoading = true;
+    private string? errorMessage;
+    private Guid currentUserId;
+    private bool isAuthenticated;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+        var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (Guid.TryParse(userIdStr, out var id))
+        {
+            isAuthenticated = true;
+            currentUserId = id;
+            await LoadHistoryAsync();
+        }
+        else
+        {
+            isAuthenticated = false;
+            isLoading = false;
+        }
+    }
+
+    private async Task LoadHistoryAsync()
+    {
+        isLoading = true;
+        var now = DateTime.UtcNow;
+        finishedOrders = await OrderService.GetFinishedOrdersForUserAsync(currentUserId, now.Month, now.Year);
+        isLoading = false;
+    }
+}

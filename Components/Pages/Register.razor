@@ -1,4 +1,5 @@
 @page "/account/register"
+@layout AuthLayout
 @using BlazorApp1.Entities
 @using Microsoft.AspNetCore.Components.Forms
 @inject NavigationManager Navigation
@@ -16,6 +17,14 @@
             <form method="post" action="/register?returnUrl=@Uri.EscapeDataString(ReturnUrl ?? "/")" class="login-form">
                 <AntiforgeryToken />
                 
+                @if (!string.IsNullOrEmpty(Error))
+                {
+                    <div class="auth-error">
+                        <i class="bi bi-exclamation-circle"></i>
+                        <span>@Error</span>
+                    </div>
+                }
+
                 <div class="form-group">
                     <label for="fullname">Full Name</label>
                     <div class="input-container">
@@ -52,4 +61,7 @@
 @code {
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; } = "/";
+
+    [SupplyParameterFromQuery]
+    public string? Error { get; set; }
 }

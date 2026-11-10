@@ -19,6 +19,7 @@ namespace BlazorApp1.Data
         public DbSet<Status> Statuses { get; set; }
         public DbSet<BusinessType> BusinessTypes { get; set; }
         public DbSet<PackageType> PackageTypes { get; set; }
+        public DbSet<Review> Reviews { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -26,6 +27,9 @@ namespace BlazorApp1.Data
             builder.Entity<Order>().HasOne(o => o.User).WithMany(u => u.Orders).OnDelete(DeleteBehavior.Restrict);
             builder.Entity<OrderPackage>().HasOne(o => o.Order).WithMany(u => u.OrderPackages).OnDelete(DeleteBehavior.Restrict);
             builder.Entity<OrderPackage>().HasOne(o => o.Package).WithMany(u => u.OrderPackages).OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<Review>().HasOne(r => r.User).WithMany().HasForeignKey(r => r.UserId).OnDelete(DeleteBehavior.Cascade);
+            builder.Entity<Review>().HasOne(r => r.Package).WithMany().HasForeignKey(r => r.PackageId).OnDelete(DeleteBehavior.Cascade);
 
             var statuses = Enum.GetValues(typeof(StatusEnum))
                 .Cast<StatusEnum>()

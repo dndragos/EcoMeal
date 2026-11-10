@@ -12,9 +12,29 @@ namespace BlazorApp1.Repositories
             return await context.Businesses.ToListAsync();
         }
 
+        public async Task<List<Business>> GetPaginatedAsync(string? searchTerm, BusinessTypeEnum type, int skip, int take)
+        {
+            var query = context.Businesses.Where(b => b.BusinessTypeId == type);
+            
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(b => EF.Functions.Like(b.Name, $"%{searchTerm}%"));
+            }
+            
+            return await query.Skip(skip).Take(take).ToListAsync();
+        }
+
         public async Task<Business?> GetById(Guid Id)
         {
             return await context.Businesses.FirstOrDefaultAsync(o => o.Id == Id);
+        }
+
+        public async Task<List<Business>> GetByOwnerIdAsync(Guid ownerId)
+        {
+            return await context.Businesses
+                .Include(b => b.BusinessType)
+                .Where(b => b.OwnerId == ownerId)
+                .ToListAsync();
         }
 
         public async Task AddAsync(Business business)
@@ -41,6 +61,7 @@ namespace BlazorApp1.Repositories
             context.Packages.RemoveRange(business.Packages);
             context.Orders.RemoveRange(business.Orders);
             context.Businesses.Remove(business);
+            await context.SaveChangesAsync();
         }
 
         public async Task SaveChangesAsync()

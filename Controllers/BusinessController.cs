@@ -15,6 +15,12 @@ namespace BlazorApp1.Controllers
             return await businessSerivce.GetAll();
         }
 
+        [HttpGet("paginated")]
+        public async Task<ActionResult<List<Business>>> GetPaginated([FromQuery] string? searchTerm, [FromQuery] BusinessTypeEnum type, [FromQuery] int skip, [FromQuery] int take)
+        {
+            return await businessSerivce.GetPaginatedAsync(searchTerm, type, skip, take);
+        }
+
         [HttpPost]
         public async Task<ActionResult> AddAsync(Business business)
         {

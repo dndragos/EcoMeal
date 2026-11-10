@@ -1,0 +1,144 @@
+@page "/my-business"
+@using BlazorApp1.Entities
+@using BlazorApp1.Repositories.Interfaces
+@using BlazorApp1.Data
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize(Roles = "BusinessManager")]
+@inject IBusinessRepository BusinessRepo
+@inject EcoMealDbContext DbContext
+@inject AuthenticationStateProvider AuthStateProvider
+@inject NavigationManager NavigationManager
+@rendermode InteractiveServer
+
+<PageTitle>My Business Dashboard</PageTitle>
+
+<!-- Premium Hero -->
+<div class="hero-container position-relative overflow-hidden rounded-4 mb-5 shadow-lg mt-3" style="min-height: 240px; padding: 0; background-color: #f8fdfa; border: 1px solid rgba(132, 169, 140, 0.2); display: flex; align-items: center;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 80% 20%, rgba(132, 169, 140, 0.15) 0%, transparent 50%); pointer-events: none;"></div>
+    <div class="container position-relative z-1 py-4 h-100 d-flex flex-column justify-content-center">
+        <div class="row align-items-center">
+            <div class="col-lg-12 text-center mb-4 mb-lg-0">
+                <div class="badge bg-white text-success rounded-pill px-3 py-2 mb-3 shadow-sm fw-bold border" style="animation: fadeDown 0.8s ease-out; color: var(--eco-primary) !important;">
+                    <i class="bi bi-briefcase-fill text-warning me-1"></i> Business Manager
+                </div>
+                <h1 class="display-4 fw-bolder mb-3 text-dark" style="letter-spacing: -1px; animation: slideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+                    My Business Dashboard<br/>
+                </h1>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (isLoading)
+{
+    <div class="d-flex justify-content-center my-5">
+        <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else if (myBusiness == null)
+{
+    <div class="eco-card text-center p-5 shadow-sm border-0">
+        <i class="bi bi-shop display-1 text-muted mb-3 opacity-50"></i>
+        <h3 class="fw-bold mb-3">You don't have a business registered yet.</h3>
+        <p class="text-muted mb-4 fs-5">Create a business profile to start selling sustainable packages.</p>
+        <a href="business/create" class="btn btn-eco btn-lg rounded-pill fw-bold px-5 shadow-sm">
+            <i class="bi bi-plus-circle me-2"></i> Register Business
+        </a>
+    </div>
+}
+else
+{
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold mb-0 text-dark">
+                <i class="bi bi-shop me-2" style="color: var(--eco-primary);"></i> @myBusiness.Name
+            </h2>
+            <div class="d-flex gap-2">
+                <a href="business/update/@myBusiness.Id" class="btn btn-outline-secondary rounded-pill px-4 fw-bold shadow-sm">
+                    <i class="bi bi-pencil me-2"></i> Edit Details
+                </a>
+                <a href="business/@myBusiness.Id/packages" class="btn btn-eco rounded-pill px-4 fw-bold shadow-sm">
+                    <i class="bi bi-box-seam me-2"></i> Manage Packages
+                </a>
+                <button class="btn btn-outline-danger rounded-pill px-4 fw-bold shadow-sm" @onclick="DeleteBusinessAsync">
+                    <i class="bi bi-trash me-2"></i> Delete Business
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="eco-card p-4 h-100 shadow-sm border-0 position-relative overflow-hidden" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+                    <div class="position-absolute top-0 end-0 m-3 opacity-25">
+                        <i class="bi bi-receipt display-4"></i>
+                    </div>
+                    <h5 class="text-muted fw-bold text-uppercase tracking-wider small mb-3">Total Orders</h5>
+                    <h2 class="display-4 fw-bolder mb-0" style="color: var(--eco-dark);">@totalOrders</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="eco-card p-4 h-100 shadow-sm border-0 position-relative overflow-hidden" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+                    <div class="position-absolute top-0 end-0 m-3 opacity-25">
+                        <i class="bi bi-check-circle display-4 text-success"></i>
+                    </div>
+                    <h5 class="text-success fw-bold text-uppercase tracking-wider small mb-3">Delivered</h5>
+                    <h2 class="display-4 fw-bolder mb-0 text-success">@deliveredOrders</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="eco-card p-4 h-100 shadow-sm border-0 position-relative overflow-hidden" style="transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'">
+                    <div class="position-absolute top-0 end-0 m-3 opacity-25">
+                        <i class="bi bi-x-circle display-4 text-danger"></i>
+                    </div>
+                    <h5 class="text-danger fw-bold text-uppercase tracking-wider small mb-3">Canceled</h5>
+                    <h2 class="display-4 fw-bolder mb-0 text-danger">@canceledOrders</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private Business? myBusiness;
+    private int totalOrders;
+    private int deliveredOrders;
+    private int canceledOrders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var userIdStr = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (Guid.TryParse(userIdStr, out var userId))
+        {
+            var businesses = await BusinessRepo.GetByOwnerIdAsync(userId);
+            myBusiness = businesses.FirstOrDefault();
+
+            if (myBusiness != null)
+            {
+                var orders = await DbContext.Orders
+                    .Where(o => o.BusinessId == myBusiness.Id)
+                    .ToListAsync();
+                
+                totalOrders = orders.Count;
+                deliveredOrders = orders.Count(o => o.StatusId == StatusEnum.Delivered);
+                canceledOrders = orders.Count(o => o.StatusId == StatusEnum.Canceled);
+            }
+        }
+        isLoading = false;
+    }
+
+    private async Task DeleteBusinessAsync()
+    {
+        if (myBusiness != null)
+        {
+            await BusinessRepo.DeleteAsync(myBusiness.Id);
+            NavigationManager.NavigateTo("/my-business", true);
+        }
+    }
+}

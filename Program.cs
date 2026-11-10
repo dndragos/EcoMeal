@@ -40,7 +40,16 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<AuthController>();
 builder.Services.AddScoped<IPackageRepository, PackageRepository>();
 builder.Services.AddScoped<IPackageService, PackageService>();
+builder.Services.AddHostedService<BlazorApp1.Services.OrderCleanupService>();
 builder.Services.AddScoped<PackageController>();
+builder.Services.AddScoped<IOrderPackageRepository, OrderPackageRepository>();
+builder.Services.AddScoped<IOrderPackageService, OrderPackageService>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<OrderController>();
+builder.Services.AddScoped<IToastService, ToastService>();
 
 var app = builder.Build();
 
@@ -69,5 +78,3 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 app.Run();
-
-// admin page

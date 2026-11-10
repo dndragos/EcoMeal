@@ -6,22 +6,23 @@
     --eco-secondary: #84A98C;
     --eco-dark: #2F3E46;
     --eco-light: #CAD2C5;
-    --eco-bg: #F4F6F4;
+    --eco-bg: #F4F8F6; /* Crisp, fresh off-white with a hint of mint */
     --eco-text: #2D3748;
     --eco-text-muted: #718096;
-    --eco-card-bg: #FFFFFF;
+    --eco-card-bg: rgba(255, 255, 255, 0.95);
     --eco-border: #E2E8F0;
     --eco-shadow: 0 10px 25px rgba(47, 62, 70, 0.05);
-    --eco-shadow-hover: 0 15px 35px rgba(47, 62, 70, 0.1);
-    --eco-radius: 12px;
-    --eco-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --eco-shadow-hover: 0 20px 40px rgba(47, 62, 70, 0.15);
+    --eco-radius: 16px;
+    --eco-transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html, body {
     font-family: 'Outfit', sans-serif;
-    background-color: var(--eco-bg);
+    background-color: #F8F9FA;
     color: var(--eco-text);
     line-height: 1.6;
+    min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -45,13 +46,31 @@ a:hover {
     border-radius: var(--eco-radius);
     padding: 1.5rem;
     box-shadow: var(--eco-shadow);
-    border: 1px solid var(--eco-border);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(10px);
     transition: var(--eco-transition);
+    animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(20px);
 }
 
 .eco-card:hover {
     box-shadow: var(--eco-shadow-hover);
-    transform: translateY(-3px);
+    transform: translateY(-5px) scale(1.01);
+}
+
+/* Animations */
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(82, 121, 111, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(82, 121, 111, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(82, 121, 111, 0); }
 }
 
 .eco-card-header {
@@ -79,8 +98,8 @@ a:hover {
 .btn-eco:hover {
     background-color: var(--eco-primary-hover);
     color: white;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(82, 121, 111, 0.2);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(82, 121, 111, 0.3);
 }
 
 .btn-eco-outline {
@@ -98,6 +117,8 @@ a:hover {
 .btn-eco-outline:hover {
     background-color: var(--eco-primary);
     color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(82, 121, 111, 0.2);
 }
 
 /* Inputs */

@@ -21,5 +21,7 @@ namespace BlazorApp1.Entities
         public int OrderNumber { get; set; }
 
         public ICollection<OrderPackage> OrderPackages { get; set; } = new List<OrderPackage>();
+
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

@@ -2,55 +2,105 @@
 
 <PageTitle>EcoMeal - Sustainable Dining</PageTitle>
 
-<div class="hero-section text-center p-5 mt-4 rounded-3">
-    <i class="bi bi-tree text-white display-1 mb-3 d-inline-block"></i>
-    <h1 class="display-3 fw-bold text-white mb-3">Welcome to EcoMeal</h1>
-    <p class="lead text-white-50 mb-5 fs-4" style="max-width: 600px; margin: 0 auto;">
-        Connecting you with local businesses to save delicious, high-quality food from going to waste. 
-        Sustainable dining starts here.
-    </p>
-    <div class="d-flex justify-content-center gap-3">
-        <a href="packages" class="btn btn-light btn-lg px-5 py-3 fw-bold rounded-pill" style="color: var(--eco-primary);">
-            Explore Food Packages
-        </a>
-        <a href="businesses" class="btn-eco-outline text-white border-white btn-lg px-5 py-3 rounded-pill">
-            View Partners
-        </a>
+<!-- Hero Section -->
+<div class="hero-container position-relative overflow-hidden rounded-4 mb-5 shadow-lg mt-3">
+    <div class="hero-bg"></div>
+    <div class="container position-relative z-1 py-5">
+        <div class="row align-items-center min-vh-50 py-5">
+            <div class="col-lg-6 text-center text-lg-start mb-5 mb-lg-0">
+                <div class="badge bg-white text-success rounded-pill px-3 py-2 mb-4 shadow-sm fw-bold border" style="animation: fadeDown 0.8s ease-out; color: var(--eco-primary) !important;">
+                    <i class="bi bi-stars text-warning me-1"></i> Joining the food rescue revolution
+                </div>
+                <h1 class="display-3 fw-bolder mb-4 text-dark hero-title" style="letter-spacing: -1px;">
+                    Eat well.<br/>
+                    <span class="text-gradient">Save the planet.</span>
+                </h1>
+                <p class="lead text-muted mb-5 fs-4 fw-light hero-subtitle">
+                    EcoMeal connects you with premium local restaurants and cafes to rescue surplus food at a fraction of the price.
+                </p>
+                <div class="d-flex flex-column flex-sm-row justify-content-center justify-content-lg-start gap-3 hero-buttons">
+                    <a href="businesses" class="btn btn-eco btn-lg px-5 py-3 fw-bold rounded-pill shadow-lg d-flex align-items-center justify-content-center">
+                        <i class="bi bi-shop me-2 fs-4"></i> Find Local Food
+                    </a>
+                    <a href="order" class="btn btn-white btn-lg px-5 py-3 fw-bold rounded-pill shadow-sm d-flex align-items-center justify-content-center" style="border: 1px solid var(--eco-border);">
+                        <i class="bi bi-cart3 me-2 fs-4 text-muted"></i> View Order
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 position-relative hero-graphics d-none d-lg-block">
+                <!-- Abstract Floating Cards -->
+                <div class="floating-card card-1 shadow-lg">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-box text-white" style="background-color: var(--eco-primary);"><i class="bi bi-box-seam"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark">Surprise Bag</div>
+                            <div class="text-muted small">Pasta Palace</div>
+                        </div>
+                        <div class="ms-auto fw-bold fs-5" style="color: var(--eco-primary);">£4.99</div>
+                    </div>
+                </div>
+                <div class="floating-card card-2 shadow-lg">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-box bg-warning text-dark"><i class="bi bi-cup-hot"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark">Morning Pastries</div>
+                            <div class="text-muted small">Green Bean Cafe</div>
+                        </div>
+                        <div class="ms-auto fw-bold text-warning fs-5">£2.50</div>
+                    </div>
+                </div>
+                <div class="floating-card card-3 shadow-lg">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="icon-box text-white" style="background-color: var(--eco-dark);"><i class="bi bi-bag-heart"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark">Rescued Today</div>
+                            <div class="fw-bold" style="color: var(--eco-primary);">12,450 meals</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Decorative Elements -->
+                <div class="blob blob-1"></div>
+                <div class="blob blob-2"></div>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row mt-5 pt-3 text-center">
-    <div class="col-md-4 mb-4">
-        <div class="eco-card h-100 border-0 bg-transparent shadow-none">
-            <i class="bi bi-geo-alt display-4 mb-3 d-block" style="color: var(--eco-primary)"></i>
-            <h3 class="h4">Find Local Spots</h3>
-            <p class="text-muted">Discover restaurants, cafes, and supermarkets near you participating in the initiative.</p>
-        </div>
+<!-- How it Works -->
+<div class="container py-5 my-5">
+    <div class="text-center mb-5 pb-3">
+        <h2 class="display-5 fw-bold text-dark" style="letter-spacing: -1px;">How EcoMeal Works</h2>
+        <p class="lead text-muted">Three simple steps to make a difference.</p>
     </div>
-    <div class="col-md-4 mb-4">
-        <div class="eco-card h-100 border-0 bg-transparent shadow-none">
-            <i class="bi bi-box-seam display-4 mb-3 d-block" style="color: var(--eco-secondary)"></i>
-            <h3 class="h4">Rescue Food</h3>
-            <p class="text-muted">Purchase surplus food packages at a significant discount before the end of the day.</p>
-        </div>
-    </div>
-    <div class="col-md-4 mb-4">
-        <div class="eco-card h-100 border-0 bg-transparent shadow-none">
-            <i class="bi bi-globe-americas display-4 mb-3 d-block" style="color: var(--eco-dark)"></i>
-            <h3 class="h4">Save the Planet</h3>
-            <p class="text-muted">Every package rescued is a step towards a greener, more sustainable world.</p>
-        </div>
-    </div>
-</div>
-
-<style>
-    .hero-section {
-        background: linear-gradient(135deg, var(--eco-primary) 0%, var(--eco-secondary) 100%);
-        box-shadow: 0 20px 40px rgba(82, 121, 111, 0.2);
-    }
     
-    .hero-section .btn-eco-outline:hover {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: white !important;
-    }
-</style>
+    <div class="row g-4 position-relative">
+        <!-- Connecting Line -->
+        <div class="position-absolute top-50 start-0 w-100 border-top border-2 border-dashed d-none d-md-block" style="z-index: 0; opacity: 0.2; transform: translateY(-50%); border-color: var(--eco-primary) !important;"></div>
+        
+        <div class="col-md-4 text-center position-relative z-1 step-card">
+            <div class="step-icon shadow-lg bg-white mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle" style="width: 100px; height: 100px; border: 4px solid var(--eco-bg);">
+                <i class="bi bi-search fs-1" style="color: var(--eco-primary);"></i>
+            </div>
+            <h3 class="fw-bold text-dark h4">1. Discover</h3>
+            <p class="text-muted px-3">Find participating stores and restaurants in your area with surplus food.</p>
+        </div>
+        
+        <div class="col-md-4 text-center position-relative z-1 step-card" style="animation-delay: 0.2s;">
+            <div class="step-icon shadow-lg bg-white mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle" style="width: 100px; height: 100px; border: 4px solid var(--eco-bg);">
+                <i class="bi bi-bag-check fs-1" style="color: var(--eco-secondary);"></i>
+            </div>
+            <h3 class="fw-bold text-dark h4">2. Reserve</h3>
+            <p class="text-muted px-3">Purchase a 'Surprise Bag' or specific package at a massive discount.</p>
+        </div>
+        
+        <div class="col-md-4 text-center position-relative z-1 step-card" style="animation-delay: 0.4s;">
+            <div class="step-icon shadow-lg bg-white mx-auto mb-4 d-flex align-items-center justify-content-center rounded-circle" style="width: 100px; height: 100px; border: 4px solid var(--eco-bg);">
+                <i class="bi bi-shop fs-1 text-warning"></i>
+            </div>
+            <h3 class="fw-bold text-dark h4">3. Collect</h3>
+            <p class="text-muted px-3">Head to the store at the specified time to pick up your delicious food.</p>
+        </div>
+    </div>
+</div>
+
+

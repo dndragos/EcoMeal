@@ -9,5 +9,7 @@ namespace BlazorApp1.Repositories.Interfaces
         public Task AddAsync(Package package);
         public Task DeleteAsync(Guid id);
         public Task SaveChangesAsync();
+        public Task<(int Quantity, Guid BusinessId)?> GetPackageAvailabilityAsync(Guid packageId);
+        public Task UpdatePackageQuantityAsync(Guid packageId, int quantityChange);
     }
 }

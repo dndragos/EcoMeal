@@ -1,10 +1,10 @@
 @rendermode InteractiveServer
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-transparent py-3 px-4">
-    <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center gap-2" href="">
-            <i class="bi bi-leaf-fill" style="color: var(--eco-light);"></i>
-            EcoMeal
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="" style="position: relative; z-index: 2;">
+            <i class="bi bi-leaf-fill fs-3" style="background: linear-gradient(135deg, #34d399 0%, #10b981 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+            <span class="fw-bolder fs-4" style="letter-spacing: -0.5px; color: white;">EcoMeal</span>
         </a>
         <button class="navbar-toggler" type="button" @onclick="ToggleNavMenu" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -21,12 +21,28 @@
                         <i class="bi bi-building"></i> Businesses
                     </NavLink>
                 </li>
+                <AuthorizeView Roles="Admin, BusinessManager" Context="hideContext">
+                    <NotAuthorized>
+                        <li class="nav-item">
+                            <NavLink class="nav-link" href="order">
+                                <i class="bi bi-cart"></i> Orders
+                            </NavLink>
+                        </li>
+                    </NotAuthorized>
+                </AuthorizeView>
                 <AuthorizeView>
                     <Authorized>
                         <AuthorizeView Roles="Admin" Context="adminContext">
                             <li class="nav-item">
                                 <NavLink class="nav-link" href="admin">
                                     <i class="bi bi-shield-lock"></i> Admin Panel
+                                </NavLink>
+                            </li>
+                        </AuthorizeView>
+                        <AuthorizeView Roles="BusinessManager" Context="bmContext">
+                            <li class="nav-item">
+                                <NavLink class="nav-link" href="my-business">
+                                    <i class="bi bi-briefcase"></i> My Business
                                 </NavLink>
                             </li>
                         </AuthorizeView>
@@ -69,35 +85,66 @@
 }
 
 <style>
-    /* Scoped NavMenu CSS */
+    /* Premium Floating Glass NavMenu CSS */
+    .eco-top-nav {
+        background: transparent !important;
+        box-shadow: none !important;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        z-index: 1030;
+        pointer-events: none; /* Let clicks pass through empty areas */
+    }
+
+    .navbar {
+        background: rgba(20, 35, 28, 0.75) !important; /* Deep elegant dark green glass */
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        width: 100%;
+        padding: 0.6rem 1.5rem !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        pointer-events: auto; /* Enable clicks on the navbar itself */
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .navbar:hover {
+        background: rgba(20, 35, 28, 0.85) !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
     .navbar-brand {
-        font-weight: 700;
-        font-size: 1.4rem;
-        letter-spacing: 0.5px;
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .navbar-brand:hover {
+        transform: scale(1.05);
     }
     
     .nav-item .nav-link {
-        color: rgba(255, 255, 255, 0.8) !important;
-        border-radius: 8px;
-        transition: var(--eco-transition);
-        padding: 0.5rem 1rem !important;
+        color: rgba(255, 255, 255, 0.65) !important;
+        border-radius: 50px; 
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        padding: 0.7rem 1.4rem !important;
         display: flex;
         align-items: center;
         gap: 8px;
-        font-weight: 500;
+        font-weight: 600;
+        font-size: 0.95rem;
+        margin: 0 0.2rem;
+        position: relative;
     }
 
     .nav-item .nav-link:hover {
-        background-color: rgba(255, 255, 255, 0.1);
         color: white !important;
+        background: rgba(255, 255, 255, 0.08);
         transform: translateY(-2px);
     }
 
     .nav-item .nav-link.active {
-        background-color: var(--eco-secondary);
         color: white !important;
-        font-weight: 600;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.15), 0 4px 15px rgba(0,0,0,0.1);
     }
     
     .nav-item .nav-link i {
@@ -105,21 +152,70 @@
     }
 
     .nav-item .btn-login {
-        border: 1px solid rgba(255, 255, 255, 0.4);
+        border: none;
+        background: rgba(255, 255, 255, 0.08);
+        color: white !important;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
     }
     
     .nav-item .btn-login:hover {
-        border-color: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4), 0 5px 15px rgba(0,0,0,0.1);
     }
 
     .nav-item .btn-register {
-        background-color: var(--eco-primary, #4caf50);
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
         color: white !important;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        border: none;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .nav-item .btn-register::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: 50px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.3s;
     }
 
     .nav-item .btn-register:hover {
-        background-color: var(--eco-primary-dark, #388e3c);
-        box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.5);
+        transform: translateY(-3px) scale(1.02);
+    }
+
+    .nav-item .btn-register:hover::after {
+        opacity: 1;
+    }
+    
+    .navbar-toggler {
+        border: none;
+        padding: 0.5rem;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.1);
+        transition: background-color 0.3s;
+    }
+
+    .navbar-toggler:focus {
+        box-shadow: none;
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    @@media (max-width: 991.98px) {
+        .navbar {
+            border-radius: 20px;
+            padding: 1rem !important;
+        }
+        .nav-item .nav-link {
+            margin: 0.2rem 0;
+            border-radius: 10px;
+        }
+        .eco-top-nav {
+            padding-top: 0.5rem;
+            padding-inline: 0.5rem;
+        }
     }
 </style>

@@ -14,6 +14,11 @@ namespace BlazorApp1.Services
             return await businessRepository.GetAllAsync();
         }
 
+        public async Task<List<Business>> GetPaginatedAsync(string? searchTerm, BusinessTypeEnum type, int skip, int take)
+        {
+            return await businessRepository.GetPaginatedAsync(searchTerm, type, skip, take);
+        }
+
         public async Task AddAsync(Business business)
         {
             await businessRepository.AddAsync(business);

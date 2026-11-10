@@ -1,22 +1,55 @@
-@page "/packages"
 @page "/business/{BusinessId:guid}/packages"
 @using BlazorApp1.Controllers
 @using BlazorApp1.Entities
 @rendermode InteractiveServer
 @inject PackageController PackageController
+@inject BusinessController BusinessController
 @inject AuthenticationStateProvider AuthStateProvider
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.Security.Claims
 
+@using BlazorApp1.Services.Interfaces
+@inject IOrderService OrderService
+@inject NavigationManager NavigationManager
+@using BlazorApp1.Services.Interfaces
+@inject IToastService ToastService
+
 <PageTitle>EcoMeal Packages</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Available Packages</h1>
-    <div class="d-flex gap-2 align-items-center">
-        <input type="text" class="form-control" placeholder="Search by name..." @bind="searchTerm" @bind:event="oninput" style="min-width: 200px;" />
-        <AuthorizeView Roles="Admin, BusinessManager">
-            <a href="package/create" class="btn-eco text-nowrap"><i class="bi bi-plus-lg"></i> Add New</a>
-        </AuthorizeView>
+
+
+<!-- Premium Hero -->
+<div class="hero-container position-relative overflow-hidden rounded-4 mb-5 shadow-lg mt-3" style="min-height: 320px; padding: 0; background-color: #f8fdfa; border: 1px solid rgba(132, 169, 140, 0.2); display: flex; align-items: center;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 80% 20%, rgba(132, 169, 140, 0.15) 0%, transparent 50%); pointer-events: none;"></div>
+    <div class="container position-relative z-1 py-4 h-100 d-flex flex-column justify-content-center">
+        <div class="row align-items-center">
+            <div class="col-lg-7 text-center text-lg-start mb-4 mb-lg-0">
+                <div class="badge bg-white text-success rounded-pill px-3 py-2 mb-3 shadow-sm fw-bold border" style="animation: fadeDown 0.8s ease-out; color: var(--eco-primary) !important;">
+                    <i class="bi bi-box2-heart text-warning me-1"></i> Available Packages
+                </div>
+                <h1 class="display-4 fw-bolder mb-3 text-dark" style="letter-spacing: -1px; animation: slideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+                    Rescue.<br/>
+                    <span style="background: linear-gradient(135deg, var(--eco-primary) 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Eat. Save.</span>
+                </h1>
+                <p class="lead text-muted fs-5 fw-light" style="animation: slideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.1s backwards;">
+                    Rescue delicious food at a fraction of the price.
+                </p>
+            </div>
+            <div class="col-lg-5" style="animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;">
+                <div class="p-4 bg-white bg-opacity-75 rounded-4 shadow-sm border border-white" style="backdrop-filter: blur(12px);">
+                    <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white mb-3 border">
+                        <span class="input-group-text bg-white border-0 text-muted ps-4"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-0 px-3" placeholder="Search packages..." @bind="searchTerm" @bind:event="oninput" style="box-shadow: none;" />
+                    </div>
+                    @if (isAdmin || (isBusinessManager && currentBusiness?.OwnerId == currentUserId))
+                    {
+                        <a href="package/create" class="btn btn-eco w-100 fw-bold rounded-pill py-3 d-flex justify-content-center align-items-center shadow-sm">
+                            <i class="bi bi-plus-lg me-2"></i> Add New Package
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -34,9 +67,10 @@ else if(!FilteredPackages.Any())
         <i class="bi bi-box-seam display-1 text-muted mb-3"></i>
         <h3>No packages found</h3>
         <p class="text-muted">No food packages match your criteria.</p>
-        <AuthorizeView Roles="Admin, BusinessManager">
+        @if (isAdmin || (isBusinessManager && currentBusiness?.OwnerId == currentUserId))
+        {
             <a href="package/create" class="btn-eco mt-2">Create Package</a>
-        </AuthorizeView>
+        }
     </div>
 }
 else
@@ -44,40 +78,72 @@ else
     <div class="eco-grid">
         @foreach (var package in FilteredPackages)
         {
-            <div class="eco-card d-flex flex-column">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <h4 class="mb-0 text-truncate">@package.Name</h4>
-                    <span class="eco-badge">@package.PackageTypeId.ToString()</span>
+            <div class="eco-card p-0 overflow-hidden d-flex flex-column h-100 position-relative shadow-sm bg-white" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)'" onmouseout="this.style.transform='none'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.05)'" @onclick="() => NavigateToPackage(package.Id)">
+                <div class="position-absolute top-0 end-0 m-3 z-1">
+                    <span class="badge rounded-pill shadow-sm px-3 py-2 fw-bold" style="background-color: rgba(255, 255, 255, 0.9); color: var(--eco-dark); border: 1px solid var(--eco-border); backdrop-filter: blur(4px);">@package.PackageTypeId.ToString()</span>
                 </div>
-
+                
                 @if (!string.IsNullOrEmpty(package.ImageUrl))
                 {
-                    <img src="@package.ImageUrl" alt="@package.Name" class="img-fluid rounded mb-3" style="max-height: 150px; object-fit: cover; width: 100%;" />
+                    <img src="@package.ImageUrl" alt="@package.Name" class="img-fluid w-100" style="height: 200px; object-fit: cover;" />
+                }
+                else
+                {
+                    <div class="w-100 bg-light d-flex align-items-center justify-content-center text-muted" style="height: 200px;">
+                        <i class="bi bi-box-seam display-1 opacity-25"></i>
+                    </div>
                 }
                 
-                <h3 class="mb-3" style="color: var(--eco-primary);">@package.Price.ToString("C")</h3>
-                
-                <p class="text-muted flex-grow-1" style="font-size: 0.95rem;">
-                    <strong>Qty:</strong> @package.Quantity available
-                </p>
-                
-                <div class="mt-2 pt-3 border-top d-flex flex-column gap-2 text-muted" style="font-size: 0.85rem;">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="mb-1">
-                                <i class="bi bi-clock me-1" style="color: var(--eco-secondary)"></i> 
-                                <strong>Pick up:</strong> @package.PickupStart.ToString("MMM dd, HH:mm")
+                <div class="p-4 d-flex flex-column flex-grow-1">
+                    <h4 class="mb-1 fw-bold text-truncate" style="color: var(--eco-dark);" title="@package.Name">@package.Name</h4>
+                    <h3 class="mb-3 fw-bold" style="color: var(--eco-primary);">@package.Price.ToString("C")</h3>
+                    
+                    <p class="text-muted mb-4" style="font-size: 0.95rem;">
+                        <i class="bi bi-box-fill me-2 opacity-50"></i><strong>@package.Quantity</strong> available
+                    </p>
+                    
+                    <div class="mt-auto pt-3 border-top d-flex flex-column gap-3 text-muted" style="font-size: 0.85rem;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: rgba(132, 169, 140, 0.2);">
+                                    <i class="bi bi-clock-fill" style="color: var(--eco-secondary);"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold" style="color: var(--eco-text);">Pickup</div>
+                                    <div class="opacity-75">@package.PickupStart.ToString("MMM dd, HH:mm")</div>
+                                </div>
                             </div>
-                            <div>
-                                <i class="bi bi-clock-history me-1" style="color: #e56b6f"></i>
-                                <strong>Ends:</strong> @package.PickupEnd.ToString("MMM dd, HH:mm")
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; background-color: rgba(229, 107, 111, 0.1);">
+                                    <i class="bi bi-hourglass-bottom" style="color: #e56b6f;"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold" style="color: var(--eco-text);">Ends</div>
+                                    <div class="opacity-75">@package.PickupEnd.ToString("MMM dd, HH:mm")</div>
+                                </div>
                             </div>
                         </div>
+                        
                         @if (CanModify(package))
                         {
-                            <div class="d-flex gap-2 ms-2 align-items-center">
-                                <a href="package/update/@package.Id" class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i> Edit</a>
-                                <button class="btn btn-sm btn-outline-danger" @onclick="() => DeletePackage(package.Id)"><i class="bi bi-trash"></i> Delete</button>
+                            <div class="d-flex gap-2 w-100 mt-2" @onclick:stopPropagation="true">
+                                <a href="package/update/@package.Id" class="btn btn-outline-secondary flex-grow-1 rounded-pill"><i class="bi bi-pencil me-1"></i> Edit</a>
+                                <button class="btn btn-outline-danger flex-grow-1 rounded-pill" @onclick="() => DeletePackage(package.Id)"><i class="bi bi-trash me-1"></i> Delete</button>
+                            </div>
+                        }
+                        else if ((isNormalUser || !currentUserId.HasValue) && package.Quantity > 0)
+                        {
+                            <div class="d-flex gap-2 align-items-center mt-2" @onclick:stopPropagation="true">
+                                <input type="number" class="form-control text-center rounded-pill bg-light border-0 shadow-sm" style="width: 70px; height: 42px;" min="1" max="@package.Quantity" @bind="selectedQuantities[package.Id]" />
+                                <button class="btn-eco flex-grow-1 rounded-pill fw-bold shadow-sm" style="height: 42px; display:flex; align-items:center; justify-content:center;" @onclick="() => AddToOrderAsync(package.Id)"><i class="bi bi-cart-plus me-2 fs-5"></i> Add</button>
+                            </div>
+                        }
+                        else if ((isNormalUser || !currentUserId.HasValue) && package.Quantity <= 0)
+                        {
+                            <div class="d-flex gap-2 align-items-center mt-2" @onclick:stopPropagation="true">
+                                <div class="w-100 rounded-pill bg-light text-muted fw-bold d-flex align-items-center justify-content-center" style="height: 42px; border: 1px dashed #ccc;">
+                                    <i class="bi bi-x-circle me-2"></i> Sold Out
+                                </div>
                             </div>
                         }
                     </div>
@@ -88,31 +154,50 @@ else
 }
 
 @code {
+    [Parameter] public Guid? BusinessId { get; set; }
+
     private List<Package>? packages;
     private string searchTerm = "";
+    private Dictionary<Guid, int> selectedQuantities = new();
+    private Guid? currentUserId;
+    private bool isNormalUser;
+    private string? successMessage;
+    private string? errorMessage;
+    private bool isAdmin;
+    private bool isBusinessManager;
+    private bool isProcessing = false;
+    private Business? currentBusiness;
 
     private IEnumerable<Package>? FilteredPackages =>
         string.IsNullOrWhiteSpace(searchTerm) 
             ? packages 
             : packages?.Where(p => p.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
 
-    [Parameter] public Guid? BusinessId { get; set; }
-
-    private Guid? currentUserId;
-    private bool isAdmin;
-    private bool isBusinessManager;
-
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthStateProvider.GetAuthenticationStateAsync();
         var user = authState.User;
-        isAdmin = user.IsInRole("Admin");
-        isBusinessManager = user.IsInRole("BusinessManager");
         var userIdStr = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (Guid.TryParse(userIdStr, out var id)) {
+
+        if (Guid.TryParse(userIdStr, out var id))
+        {
             currentUserId = id;
+            isAdmin = user.IsInRole("Admin");
+            isBusinessManager = user.IsInRole("BusinessManager");
+            isNormalUser = !isAdmin && !isBusinessManager;
         }
 
+        if (BusinessId.HasValue)
+        {
+            var result = await BusinessController.GetById(BusinessId.Value);
+            currentBusiness = result.Value;
+        }
+
+        await LoadPackagesAsync();
+    }
+
+    private async Task LoadPackagesAsync()
+    {
         var allPackages = (await PackageController.GetAll()).Value ?? new List<Package>();
         if (BusinessId.HasValue)
         {
@@ -122,6 +207,66 @@ else
         {
             packages = allPackages;
         }
+
+        foreach (var p in packages)
+        {
+            if (!selectedQuantities.ContainsKey(p.Id))
+            {
+                selectedQuantities[p.Id] = 1;
+            }
+        }
+    }
+
+    private async Task ShowSuccessMessage(string message)
+    {
+        ToastService.ShowSuccess(message);
+    }
+
+    private async Task ShowErrorMessage(string message)
+    {
+        ToastService.ShowError(message);
+    }
+
+    private async Task AddToOrderAsync(Guid packageId)
+    {
+        if (isProcessing) return;
+        isProcessing = true;
+        try
+        {
+            errorMessage = null;
+
+            if (!currentUserId.HasValue)
+            {
+                var returnUrl = Uri.EscapeDataString("/" + NavigationManager.ToBaseRelativePath(NavigationManager.Uri));
+                NavigationManager.NavigateTo($"/account/login?Error=Login%20first...&ReturnUrl={returnUrl}");
+                return;
+            }
+
+            var quantity = selectedQuantities.GetValueOrDefault(packageId, 1);
+            var result = await OrderService.AddPackageToPendingOrderAsync(currentUserId.Value, packageId, quantity);
+
+            if (result != null)
+            {
+                errorMessage = result;
+                ToastService.ShowError(result);
+            }
+            else
+            {
+                var p = packages.FirstOrDefault(x => x.Id == packageId);
+                ToastService.ShowSuccess($"Added {quantity}x {p?.Name} to your cart!");
+                await LoadPackagesAsync(); // Reload to update available quantity
+                selectedQuantities[packageId] = 1; // Reset quantity
+            }
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private void NavigateToPackage(Guid packageId)
+    {
+        NavigationManager.NavigateTo($"/package/{packageId}");
     }
 
     private bool CanModify(Package p)
@@ -133,14 +278,20 @@ else
 
     private async Task DeletePackage(Guid id)
     {
-        var p = packages?.FirstOrDefault(x => x.Id == id);
-        if (p != null && CanModify(p))
+        if (isProcessing) return;
+        isProcessing = true;
+        try
         {
-            await PackageController.DeleteAsync(id);
-            var allPackages = (await PackageController.GetAll()).Value ?? new List<Package>();
-            packages = BusinessId.HasValue 
-                ? allPackages.Where(x => x.BusinessId == BusinessId.Value).ToList() 
-                : allPackages;
+            var p = packages?.FirstOrDefault(x => x.Id == id);
+            if (p != null && CanModify(p))
+            {
+                await PackageController.DeleteAsync(id);
+                await LoadPackagesAsync();
+            }
+        }
+        finally
+        {
+            isProcessing = false;
         }
     }
 }

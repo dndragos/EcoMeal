@@ -19,7 +19,7 @@ namespace BlazorApp1.Controllers
                 return LocalRedirect(returnUrl ?? "/");
             }
 
-            return LocalRedirect($"/login?error=Invalid login attempt&returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}");
+            return LocalRedirect($"/account/login?Error=Invalid%20login%20attempt&returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}");
         }
 
         [HttpPost("register")]
@@ -32,7 +32,8 @@ namespace BlazorApp1.Controllers
                 return LocalRedirect(returnUrl ?? "/");
             }
 
-            return BadRequest(result.Errors);
+            var firstError = result.Errors.FirstOrDefault()?.Description ?? "Registration failed";
+            return LocalRedirect($"/account/register?Error={Uri.EscapeDataString(firstError)}&returnUrl={Uri.EscapeDataString(returnUrl ?? "/")}");
         }
 
         [HttpPost("logout")]

@@ -1,0 +1,69 @@
+@using BlazorApp1.Services.Interfaces
+@inject IToastService ToastService
+@implements IDisposable
+@rendermode InteractiveServer
+
+@if (toasts.Any())
+{
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+        @foreach (var toast in toasts.ToList())
+        {
+            <div class="toast show align-items-center text-white border-0 shadow-lg @(toast.Type == "error" ? "bg-danger" : "")" style="@(toast.Type == "success" ? "background-color: var(--eco-primary);" : "") animation: slideInUp 0.3s ease-out forwards; mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body fs-6 fw-bold">
+                        @if (toast.Type == "error")
+                        {
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                        }
+                        @toast.Message
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" @onclick="() => RemoveToast(toast)" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private List<ToastModel> toasts = new();
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += ShowToast;
+    }
+
+    private async void ShowToast(string message, string type)
+    {
+        var toast = new ToastModel { Message = message, Type = type };
+        toasts.Add(toast);
+        await InvokeAsync(StateHasChanged);
+
+        // Auto-remove after 3 seconds
+        await Task.Delay(3000);
+        if (toasts.Contains(toast))
+        {
+            RemoveToast(toast);
+        }
+    }
+
+    private void RemoveToast(ToastModel toast)
+    {
+        toasts.Remove(toast);
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnShow -= ShowToast;
+    }
+
+    private class ToastModel
+    {
+        public string Message { get; set; } = "";
+        public string Type { get; set; } = "success";
+    }
+}

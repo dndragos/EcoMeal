@@ -10,36 +10,44 @@
 @inject BusinessController BusinessController
 @inject NavigationManager NavigationManager
 @inject AuthenticationStateProvider AuthStateProvider
+@using BlazorApp1.Services.Interfaces
+@inject IToastService ToastService
 
 <PageTitle>@(IsEditMode ? "Update Business" : "Add Business") - EcoMeal</PageTitle>
 
-    <div class="row justify-content-center">
-        <div class="col-md-8 col-lg-6">
-        <div class="eco-card">
-            <h3 class="eco-card-header">@(IsEditMode ? "Update Business" : "Register New Business")</h3>
-
+<!-- Premium Form Hero -->
+<div class="position-relative overflow-hidden rounded-4 mb-5 shadow-lg mt-3" style="min-height: 80vh; background-color: #f8fdfa; border: 1px solid rgba(132, 169, 140, 0.2); display: flex; align-items: center; justify-content: center; padding: 3rem 1rem;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 20% 80%, rgba(132, 169, 140, 0.2) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(52, 211, 153, 0.1) 0%, transparent 50%); animation: rotate 30s linear infinite; pointer-events: none;"></div>
+    
+    <div class="container position-relative z-1" style="max-width: 700px; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+        <div class="text-center mb-4">
+            <h1 class="display-5 fw-bolder text-dark" style="letter-spacing: -1px;">@(IsEditMode ? "Update Partner" : "New Partner")</h1>
+            <p class="text-muted fs-5">@(IsEditMode ? "Modify business details below." : "Register a new sustainable business.")</p>
+        </div>
+        
+        <div class="p-4 p-md-5 bg-white bg-opacity-75 rounded-4 shadow-lg border border-white" style="backdrop-filter: blur(16px);">
             <EditForm Model="@model" OnValidSubmit="Submit" FormName="createBusinessForm">
-                <div class="mb-3">
-                    <label for="name" class="form-label text-muted fw-bold">Business Name</label>
-                    <InputText id="name" class="form-control" @bind-Value="model.Name" placeholder="e.g. Green Leaf Cafe"></InputText>
+                <div class="mb-4">
+                    <label for="name" class="form-label text-muted fw-bold small text-uppercase tracking-wider">Business Name</label>
+                    <InputText id="name" class="form-control form-control-lg bg-white border-0 shadow-sm rounded-3" @bind-Value="model.Name" placeholder="e.g. Green Leaf Cafe"></InputText>
                 </div>
-                <div class="mb-3">
-                    <label for="description" class="form-label text-muted fw-bold">Description</label>
-                    <InputTextArea id="description" class="form-control" @bind-Value="model.Description" rows="3" placeholder="Tell us about the business..."></InputTextArea>
+                <div class="mb-4">
+                    <label for="description" class="form-label text-muted fw-bold small text-uppercase tracking-wider">Description</label>
+                    <InputTextArea id="description" class="form-control bg-white border-0 shadow-sm rounded-3" @bind-Value="model.Description" rows="3" placeholder="Tell us about the business..."></InputTextArea>
                 </div>
-                <div class="mb-3">
-                    <label for="address" class="form-label text-muted fw-bold">Address</label>
-                    <InputText id="address" class="form-control" @bind-Value="model.Address" placeholder="123 Eco Street"></InputText>
-                </div>
-
-                <div class="mb-3">
-                    <label for="imageUrl" class="form-label text-muted fw-bold">Image URL (Optional)</label>
-                    <InputText id="imageUrl" class="form-control" @bind-Value="model.ImageUrl" placeholder="https://example.com/image.jpg"></InputText>
+                <div class="mb-4">
+                    <label for="address" class="form-label text-muted fw-bold small text-uppercase tracking-wider">Address</label>
+                    <InputText id="address" class="form-control form-control-lg bg-white border-0 shadow-sm rounded-3" @bind-Value="model.Address" placeholder="123 Eco Street"></InputText>
                 </div>
 
                 <div class="mb-4">
-                    <label for="businessType" class="form-label text-muted fw-bold">Business Type</label>
-                    <InputSelect id="businessType" class="form-select" @bind-Value="model.BusinessTypeId">
+                    <label for="imageUrl" class="form-label text-muted fw-bold small text-uppercase tracking-wider">Image URL (Optional)</label>
+                    <InputText id="imageUrl" class="form-control form-control-lg bg-white border-0 shadow-sm rounded-3" @bind-Value="model.ImageUrl" placeholder="https://example.com/image.jpg"></InputText>
+                </div>
+
+                <div class="mb-4">
+                    <label for="businessType" class="form-label text-muted fw-bold small text-uppercase tracking-wider">Business Type</label>
+                    <InputSelect id="businessType" class="form-select form-select-lg bg-white border-0 shadow-sm rounded-3" @bind-Value="model.BusinessTypeId">
                         @foreach(var type in Enum.GetValues<BusinessTypeEnum>())
                         {
                             <option value="@type">@type</option>
@@ -47,9 +55,11 @@
                     </InputSelect>
                 </div>
 
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="businesses" class="btn-eco-outline">Cancel</a>
-                    <button type="submit" class="btn-eco">@(IsEditMode ? "Update Business" : "Register Business")</button>
+                <div class="d-flex justify-content-end gap-3 mt-5 pt-3 border-top">
+                    <a href="businesses" class="btn btn-light fw-bold rounded-pill px-4 py-2 text-muted">Cancel</a>
+                    <button type="submit" class="btn btn-eco fw-bold rounded-pill px-5 py-2 shadow-sm">
+                        <i class="bi @(IsEditMode ? "bi-check2-circle" : "bi-plus-circle") me-2"></i>@(IsEditMode ? "Save Changes" : "Register Business")
+                    </button>
                 </div>
             </EditForm>
         </div>
@@ -94,6 +104,7 @@
         if (IsEditMode)
         {
             await BusinessController.UpdateAsync(Id.Value, business);
+            ToastService.ShowSuccess("Business updated successfully!");
         }
         else
         {
@@ -104,6 +115,7 @@
                 business.OwnerId = userId;
             }
             await BusinessController.AddAsync(business);
+            ToastService.ShowSuccess("Business created successfully!");
         }
 
         NavigationManager.NavigateTo("/businesses");

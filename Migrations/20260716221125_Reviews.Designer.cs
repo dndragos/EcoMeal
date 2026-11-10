@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlazorApp1.Migrations
 {
     [DbContext(typeof(EcoMealDbContext))]
-    [Migration("20260709193034_Initial")]
-    partial class Initial
+    [Migration("20260716221125_Reviews")]
+    partial class Reviews
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -117,9 +117,14 @@ namespace BlazorApp1.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("OwnerId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("BusinessTypeId");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("Businesses");
                 });
@@ -163,6 +168,9 @@ namespace BlazorApp1.Migrations
 
                     b.Property<Guid>("BusinessId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("OrderNumber")
                         .HasColumnType("int");
@@ -286,6 +294,36 @@ namespace BlazorApp1.Migrations
                             Id = 4,
                             Name = "Drinks"
                         });
+                });
+
+            modelBuilder.Entity("BlazorApp1.Entities.Review", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("PackageId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PackageId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("BlazorApp1.Entities.Status", b =>
@@ -463,7 +501,13 @@ namespace BlazorApp1.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("BlazorApp1.Entities.ApplicationUser", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId");
+
                     b.Navigation("BusinessType");
+
+                    b.Navigation("Owner");
                 });
 
             modelBuilder.Entity("BlazorApp1.Entities.Order", b =>
@@ -529,6 +573,25 @@ namespace BlazorApp1.Migrations
                     b.Navigation("Business");
 
                     b.Navigation("PackageType");
+                });
+
+            modelBuilder.Entity("BlazorApp1.Entities.Review", b =>
+                {
+                    b.HasOne("BlazorApp1.Entities.Package", "Package")
+                        .WithMany()
+                        .HasForeignKey("PackageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlazorApp1.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Package");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

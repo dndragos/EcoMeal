@@ -5,12 +5,42 @@
 @using Microsoft.AspNetCore.Identity
 @attribute [Authorize(Roles = AppRoles.Admin)]
 @inject UserManager<ApplicationUser> UserManager
+@inject AuthenticationStateProvider AuthStateProvider
+@using System.Security.Claims
+@using BlazorApp1.Repositories.Interfaces
+@inject IBusinessRepository BusinessRepo
+@inject IOrderRepository OrderRepo
+@using BlazorApp1.Services.Interfaces
+@inject IToastService ToastService
 @rendermode InteractiveServer
+@implements IDisposable
 
 <PageTitle>Admin Dashboard - EcoMeal</PageTitle>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">Admin Dashboard</h1>
+<!-- Premium Hero -->
+<div class="hero-container position-relative overflow-hidden rounded-4 mb-5 shadow-lg mt-3" style="min-height: 240px; padding: 0; background-color: #f8fdfa; border: 1px solid rgba(132, 169, 140, 0.2); display: flex; align-items: center;">
+    <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 80% 20%, rgba(132, 169, 140, 0.15) 0%, transparent 50%); pointer-events: none;"></div>
+    <div class="container position-relative z-1 py-4 h-100 d-flex flex-column justify-content-center">
+        <div class="row align-items-center">
+            <div class="col-lg-7 text-center text-lg-start mb-4 mb-lg-0">
+                <div class="badge bg-white text-danger rounded-pill px-3 py-2 mb-3 shadow-sm fw-bold border" style="animation: fadeDown 0.8s ease-out; color: var(--eco-primary) !important;">
+                    <i class="bi bi-shield-lock text-danger me-1"></i> System Administration
+                </div>
+                <h1 class="display-4 fw-bolder mb-3 text-dark" style="letter-spacing: -1px; animation: slideRight 0.8s cubic-bezier(0.16, 1, 0.3, 1);">
+                    Manage.<br/>
+                    <span style="background: linear-gradient(135deg, var(--eco-primary) 0%, #34d399 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Monitor. Control.</span>
+                </h1>
+            </div>
+            <div class="col-lg-5" style="animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s backwards;">
+                <div class="p-4 bg-white bg-opacity-75 rounded-4 shadow-sm border border-white" style="backdrop-filter: blur(12px);">
+                    <div class="input-group input-group-lg shadow-sm rounded-pill overflow-hidden bg-white border">
+                        <span class="input-group-text bg-white border-0 text-muted ps-4"><i class="bi bi-search"></i></span>
+                        <input type="text" class="form-control border-0 px-3" placeholder="Search by email or name..." value="@searchTerm" @oninput="OnSearchInput" style="box-shadow: none;" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @if (users == null)
@@ -23,32 +53,44 @@
 }
 else
 {
-    <div class="eco-card">
-        <h3 class="eco-card-header">User Management</h3>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
+    <div class="eco-card p-0 overflow-hidden shadow-sm border-0 mb-5">
+        <div class="p-4 border-bottom bg-light bg-opacity-50">
+            <h3 class="mb-0 fw-bold text-dark h4"><i class="bi bi-people me-2" style="color: var(--eco-primary);"></i>User Management</h3>
+        </div>
+        <div class="table-responsive p-0">
+            <table class="table table-hover align-middle mb-0" style="background-color: transparent;">
+                <thead class="bg-light">
                     <tr>
-                        <th>Email</th>
-                        <th>Full Name</th>
-                        <th>Roles</th>
-                        <th class="text-end">Actions</th>
+                        <th class="ps-4 text-muted fw-bold small text-uppercase tracking-wider py-3 border-bottom-0">User Details</th>
+                        <th class="text-muted fw-bold small text-uppercase tracking-wider py-3 border-bottom-0">Roles</th>
+                        <th class="text-end pe-4 text-muted fw-bold small text-uppercase tracking-wider py-3 border-bottom-0">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var user in users)
                     {
                         var roles = userRoles.ContainsKey(user.Id) ? string.Join(", ", userRoles[user.Id]) : "None";
-                        <tr>
-                            <td>@user.Email</td>
-                            <td>@user.FullName</td>
-                            <td>
+                        <tr style="transition: background-color 0.2s;">
+                            <td class="ps-4 py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center bg-light text-muted fw-bold shadow-sm" style="width: 40px; height: 40px; border: 1px solid var(--eco-border);">
+                                        @(string.IsNullOrEmpty(user.FullName) ? "?" : user.FullName.Substring(0, 1).ToUpper())
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark mb-0">@user.FullName</div>
+                                        <div class="text-muted small">@user.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-3">
+                                <div class="d-flex flex-wrap gap-1">
                                 @foreach (var role in userRoles.GetValueOrDefault(user.Id, new List<string>()))
                                 {
-                                    <span class="badge @GetRoleBadgeClass(role) me-1">@role</span>
+                                    <span class="badge @GetRoleBadgeClass(role) rounded-pill shadow-sm px-2 py-1">@role</span>
                                 }
+                                </div>
                             </td>
-                            <td class="text-end">
+                            <td class="text-end pe-4 py-3">
                                 <div class="d-flex gap-1 justify-content-end mb-2">
                                     @foreach(var role in AppRoles.All)
                                     {
@@ -58,6 +100,9 @@ else
                                         </button>
                                     }
                                 </div>
+                                <button class="btn btn-sm btn-outline-info ms-2" @onclick="() => ShowUserDetails(user)">
+                                    <i class="bi bi-info-circle"></i> View
+                                </button>
                                 <button class="btn btn-sm btn-outline-danger ms-2" @onclick="() => DeleteUser(user)">
                                     <i class="bi bi-trash"></i> Delete
                                 </button>
@@ -67,21 +112,192 @@ else
                 </tbody>
             </table>
         </div>
+        
+        @if (totalPages > 1)
+        {
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => ChangePage(currentPage - 1)" disabled="@(currentPage == 1)">Previous</button>
+                    </li>
+                    @for (int i = 1; i <= totalPages; i++)
+                    {
+                        int pageNumber = i;
+                        <li class="page-item @(currentPage == pageNumber ? "active" : "")">
+                            <button class="page-link" @onclick="() => ChangePage(pageNumber)">@pageNumber</button>
+                        </li>
+                    }
+                    <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                        <button class="page-link" @onclick="() => ChangePage(currentPage + 1)" disabled="@(currentPage == totalPages)">Next</button>
+                    </li>
+                </ul>
+            </nav>
+        }
     </div>
+
+    @if (showModal && selectedUser != null)
+    {
+        <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+            <div class="modal-dialog modal-lg modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">User Details: @selectedUser.FullName</h5>
+                        <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-4">
+                            <h6>General Information</h6>
+                            <p class="mb-1"><strong>Email:</strong> @selectedUser.Email</p>
+                            <p class="mb-1"><strong>Roles:</strong> @string.Join(", ", userRoles.GetValueOrDefault(selectedUser.Id, new List<string>()))</p>
+                        </div>
+
+                        @if (isBusinessManagerSelected)
+                        {
+                            <h6>Managed Businesses</h6>
+                            @if (managerBusinesses == null)
+                            {
+                                <div class="text-center"><div class="spinner-border text-success" role="status"></div></div>
+                            }
+                            else if (!managerBusinesses.Any())
+                            {
+                                <p class="text-muted">This user does not manage any businesses.</p>
+                            }
+                            else
+                            {
+                                <ul class="list-group">
+                                    @foreach (var business in managerBusinesses)
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>@business.Name</strong>
+                                                <div class="text-muted small">@business.BusinessType?.Name - @business.Address</div>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        }
+                        else
+                        {
+                            <h6>Order Statistics</h6>
+                            @if (userRecentOrders == null)
+                            {
+                                <div class="text-center"><div class="spinner-border text-success" role="status"></div></div>
+                            }
+                            else
+                            {
+                                <p><strong>Total Orders:</strong> @totalUserOrders</p>
+                                
+                                <h6 class="mt-4">Recent Orders (Last 10)</h6>
+                                @if (!userRecentOrders.Any())
+                                {
+                                    <p class="text-muted">This user hasn't placed any orders yet.</p>
+                                }
+                                else
+                                {
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered mt-2">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Date</th>
+                                                    <th>Business</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach (var order in userRecentOrders)
+                                                {
+                                                    <tr>
+                                                        <td>@order.CreatedAt.ToLocalTime().ToString("g")</td>
+                                                        <td>@order.Business?.Name</td>
+                                                        <td>
+                                                            <span class="badge bg-secondary">@order.Status?.Name</span>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 }
 
 @code {
     private List<ApplicationUser>? users;
     private Dictionary<Guid, IList<string>> userRoles = new();
 
+    private bool showModal = false;
+    private ApplicationUser? selectedUser;
+    private bool isBusinessManagerSelected = false;
+    private List<Business>? managerBusinesses;
+    private List<Order>? userRecentOrders;
+    private int totalUserOrders = 0;
+
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int totalUsers = 0;
+    private int totalPages => (int)Math.Ceiling((double)totalUsers / pageSize);
+
+    private string searchTerm = "";
+    private System.Timers.Timer? debounceTimer;
+
     protected override async Task OnInitializedAsync()
     {
+        debounceTimer = new System.Timers.Timer(500);
+        debounceTimer.AutoReset = false;
+        debounceTimer.Elapsed += async (s, e) => { await InvokeAsync(PerformSearch); };
+
         await LoadUsersAsync();
+    }
+
+    private void OnSearchInput(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        debounceTimer?.Stop();
+        debounceTimer?.Start();
+    }
+
+    private async Task PerformSearch()
+    {
+        currentPage = 1;
+        users = null;
+        await InvokeAsync(StateHasChanged);
+        await LoadUsersAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadUsersAsync()
     {
-        users = UserManager.Users.ToList();
+        var query = UserManager.Users.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(u => u.Email.Contains(searchTerm) || u.FullName.Contains(searchTerm));
+        }
+
+        totalUsers = query.Count();
+        
+        int maxPage = totalPages == 0 ? 1 : totalPages;
+        if (currentPage > maxPage)
+        {
+            currentPage = maxPage;
+        }
+
+        users = query
+            .OrderBy(u => u.Email)
+            .Skip((currentPage - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+            
         userRoles.Clear();
         foreach (var user in users)
         {
@@ -90,22 +306,86 @@ else
         }
     }
 
+    private async Task ChangePage(int newPage)
+    {
+        if (newPage >= 1 && newPage <= totalPages)
+        {
+            currentPage = newPage;
+            users = null;
+            await LoadUsersAsync();
+        }
+    }
+
+    private async Task ShowUserDetails(ApplicationUser user)
+    {
+        selectedUser = user;
+        showModal = true;
+        managerBusinesses = null;
+        userRecentOrders = null;
+        totalUserOrders = 0;
+        
+        var roles = userRoles.GetValueOrDefault(user.Id, new List<string>());
+        isBusinessManagerSelected = roles.Contains(AppRoles.BusinessManager);
+        
+        if (isBusinessManagerSelected)
+        {
+            managerBusinesses = await BusinessRepo.GetByOwnerIdAsync(user.Id);
+        }
+        else
+        {
+            totalUserOrders = await OrderRepo.GetTotalOrdersCountForUserAsync(user.Id);
+            userRecentOrders = await OrderRepo.GetRecentOrdersForUserAsync(user.Id, 10);
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        selectedUser = null;
+    }
+
     private async Task ToggleRole(ApplicationUser user, string role, bool addToRole)
     {
+        if (!addToRole && role == AppRoles.Admin)
+        {
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            var currentUserId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (user.Id.ToString() == currentUserId)
+            {
+                // Cannot demote yourself
+                return;
+            }
+        }
+
         if (addToRole)
         {
             await UserManager.AddToRoleAsync(user, role);
+            ToastService.ShowSuccess($"Role {role} added to {user.FullName}");
         }
         else
         {
             await UserManager.RemoveFromRoleAsync(user, role);
+            ToastService.ShowSuccess($"Role {role} removed from {user.FullName}");
         }
         await LoadUsersAsync();
     }
 
     private async Task DeleteUser(ApplicationUser user)
     {
+        // First delete any businesses owned by this user
+        var businesses = await BusinessRepo.GetByOwnerIdAsync(user.Id);
+        if (businesses != null)
+        {
+            foreach (var b in businesses)
+            {
+                await BusinessRepo.DeleteAsync(b.Id);
+            }
+        }
+        // Delete orders placed by this user as a customer to avoid REFERENCE constraint exception
+        await OrderRepo.DeleteAllOrdersForUserAsync(user.Id);
+
         await UserManager.DeleteAsync(user);
+        ToastService.ShowSuccess($"User {user.FullName} deleted successfully.");
         await LoadUsersAsync();
     }
 
@@ -116,4 +396,8 @@ else
         AppRoles.Customer => "bg-success",
         _ => "bg-secondary"
     };
+    public void Dispose()
+    {
+        debounceTimer?.Dispose();
+    }
 }
